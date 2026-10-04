@@ -1,4 +1,3 @@
-import fastifyCors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
 import fastifyWebsocket from '@fastify/websocket';
 import * as crypto from 'crypto';
@@ -67,7 +66,9 @@ export async function createHttpServer(options: HttpServerOptions): Promise<Http
     bodyLimit: MAX_HOOK_BODY_SIZE,
   });
 
-  await app.register(fastifyCors, { origin: true });
+  // No CORS: every browser caller is same-origin (the standalone SPA and its
+  // /ws) and the hook script is not a browser. Reflecting any Origin let every
+  // website read these responses.
   await app.register(fastifyWebsocket);
 
   // Static SPA serving (standalone mode only)

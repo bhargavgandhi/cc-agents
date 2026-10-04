@@ -341,4 +341,28 @@ describe('PixelAgentsServer', () => {
 
     expect(received).toHaveLength(0);
   });
+
+  // 23. No CORS: a foreign page can neither read responses nor pass a preflight
+  it('does not grant cross-origin reads to a foreign Origin', async () => {
+    const config = await server.start();
+    const res = await fetch(`http://127.0.0.1:${config.port}/api/health`, {
+      headers: { Origin: 'http://evil.example' },
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBeNull();
+  });
+
+  it('does not approve a cross-origin preflight for the hook endpoint', async () => {
+    const config = await server.start();
+    const res = await fetch(`http://127.0.0.1:${config.port}/api/hooks/claude`, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'http://evil.example',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'authorization, content-type',
+      },
+    });
+    expect(res.headers.get('access-control-allow-origin')).toBeNull();
+    expect(res.headers.get('access-control-allow-headers')).toBeNull();
+  });
 });

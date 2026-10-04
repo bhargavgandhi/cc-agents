@@ -6,7 +6,7 @@ import semver from 'semver';
 export const EXPECTED_PACKAGE_NAME = 'pixel-agents';
 export const EXPECTED_REPOSITORY_URL = 'https://github.com/pixel-agents-hq/pixel-agents';
 
-// fastify + @fastify/{cors,static,websocket} are root runtime `dependencies` even though
+// fastify + @fastify/{static,websocket} are root runtime `dependencies` even though
 // no root source file imports them: esbuild marks them `external` when bundling
 // dist/cli.js (see esbuild.js), so the published `pixel-agents` bin resolves them from
 // node_modules at runtime. server/ ships its own copy for local dev but is excluded from
