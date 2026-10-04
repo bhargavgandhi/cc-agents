@@ -293,7 +293,7 @@ Two extracted classes that replaced ad-hoc module state. `SessionRouter` owns `s
 
 ### HTTP + WebSocket Server
 
-Fastify v5 with `@fastify/cors`, `@fastify/websocket`, and (in standalone) `@fastify/static`:
+Fastify v5 with `@fastify/websocket` and (in standalone) `@fastify/static`. No CORS — every browser caller is same-origin:
 
 | Method | Path                     | Purpose                                 |
 | ------ | ------------------------ | --------------------------------------- |
