@@ -33,8 +33,8 @@ Five hexes in v1, each one an **Area**:
 | Neon Arcade      | NYC  | `leisure` | Arcade front, 3 sidewalk cabinets                                 |
 
 - One hex ≈ 18 × 12 tiles. The full map is ≈ 72 × 40 tiles.
-- A boardwalk bridge connects NJ and NYC. Short sidewalk paths connect the hexes on each side.
-- The water is empty (VOID) space, so the backdrop shows through.
+- A boardwalk bridge (a **bike lane**) connects the two work hexes across the river. A **ferry lane** connects Riverside Gym (NJ) and Neon Arcade (NYC). Short sidewalk paths connect the hexes on each side.
+- The water is empty (VOID) space, so the backdrop shows through. The ferry lane is the one exception (see Getting around).
 - **Seats:** at least 12 work seats, which is no fewer than today's default office (10 seat-providing items). The bundled-default e2e tests need these seats.
 
 ## How agents use the city
@@ -44,29 +44,45 @@ Five hexes in v1, each one an **Area**:
 - **Idle.** When an idle agent picks its next wander target, it chooses a tile inside a `leisure` Area with probability `LEISURE_WANDER_BIAS` (0.7). Otherwise it picks any walkable tile, as it does today. If the layout has no leisure Areas, behaviour is unchanged.
 - **Bubbles and labels** are unchanged. Area labels act as hex signs and render as street-sign pills.
 
+### Getting around: bike and boat
+
+Travel modes are a **rendering and speed change on tagged tiles**, not new vehicles. Pathfinding is unchanged: BFS still takes the shortest route, and the city layout decides which route is shortest.
+
+| Mode | Where                                                                    | While on those tiles                                                               |
+| ---- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| Walk | Everywhere else                                                          | As today                                                                           |
+| Bike | Tiles in an Area with `kind: "bikeLane"` (the bridge)                    | Agent is drawn on a bike. Speed × `BIKE_SPEED_MULT` (2.0)                          |
+| Boat | Tiles in an Area with `kind: "ferry"` (the water lane between the docks) | Agent is drawn seated in a small boat with a wake. Speed × `BOAT_SPEED_MULT` (1.5) |
+
+- **Ferry tiles** are ordinary walkable floor tiles painted with a water pattern and tagged with the `ferry` Area. Water outside the lane stays VOID and can't be walked on. The island-side pass treats ferry tiles like VOID, so island edges stay drawn where the lane meets an island. Docks are furniture at each end. Their background rows are walkable, so agents step from the dock straight onto the lane.
+- **Route design gives both modes a reason to exist.** The bridge links the two work hexes, and the ferry links the gym and the arcade. An agent going between the lower hexes takes the boat because it is the shortest path, with no special routing rule. Area labels for `bikeLane` / `ferry` are hidden.
+- **Mounting** is instant: the sprite switches on the first tagged tile and back on the first untagged one. No boarding animation in v1.
+
 ## Engine changes
 
 All of these are webview-only. The protocol (`core/asyncapi.yaml`) and the server stay unchanged.
 
-1. **Area kind.** Add `kind?: 'work' | 'leisure'` to `AreaDefinition` (optional, backward compatible; layouts without it behave exactly as today). The Areas editor gets a work/leisure toggle.
+1. **Area kind.** Add `kind?: 'work' | 'leisure' | 'bikeLane' | 'ferry'` to `AreaDefinition` (optional, backward compatible; layouts without it behave exactly as today). The Areas editor gets a kind picker.
 2. **Leisure-biased wandering.** In `characters.ts`, the wander target comes from a pure function `pickWanderTarget(walkable, leisureTiles, rng)` instead of the inline random pick.
 3. **Backdrop layer.** The renderer draws a backdrop image before the tiles, anchored to the world with a parallax factor (sky and skyline 0.3, water 1.0). The layout names it with an optional `backdrop?: string`. The image is a bundled webview asset loaded through Vite (`new URL(..., import.meta.url)`). That works under the merged CSP (`img-src` = `cspSource` / `'self'`) without a new message type. The engine only draws it to the canvas, never reads its pixels, so the cross-origin restriction on reading VS Code resource images doesn't matter.
 4. **Island sides.** For every non-VOID tile whose south neighbour is VOID, draw a side face below it: a darker shade of the tile colour (`ISLAND_SIDE_PX` = 8), plus a faint shadow on the water. This is a pure render pass with no new tile type.
 5. **Bigger grid.** Raise `MAX_COLS` / `MAX_ROWS` from 64 to 96. Check frame time on the 72 × 40 map (target: no frame over 16 ms on a mid-range laptop at default zoom).
-6. **Theme tokens.** Retune `index.css` `:root` and the canvas colours in `constants.ts` to the Hudson dusk palette. Add `:focus-visible` outlines and `prefers-reduced-motion` handling, both missing today.
+6. **Travel modes.** A pure `travelModeAt(col, row, areaKinds)` returns `walk`, `bike` or `boat`. The character FSM multiplies walk speed by the mode's multiplier. The renderer draws the bike overlay (under the body, legs hidden) or the boat hull (around the seated body) for that mode. Sub-agents use it too.
+7. **Theme tokens.** Retune `index.css` `:root` and the canvas colours in `constants.ts` to the Hudson dusk palette. Add `:focus-visible` outlines and `prefers-reduced-motion` handling, both missing today.
 
 ## Art (v1)
 
 All art is drawn as code (`scripts/art/*.cjs` → PNG). It follows the existing manifest format, so it loads through the normal asset pipeline.
 
-| Group                                               | Items                                                                              | Size / footprint              |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------- |
-| Buildings (non-walkable, with background roof rows) | Office tower, café, gym, arcade, loft, brownstone ×2 colours                       | 64–80 px wide, 64–100 px tall |
-| Work spots                                          | Umbrella table (desk), stool (chair, 4 orientations), laptop (electronics, on/off) | 32×16, 16×16, 16×16           |
-| Leisure props                                       | Arcade cabinet (on/off, animated screen), weight rack, terrace table               | 16×32, 32×16, 16×16           |
-| Street                                              | Street lamp, cherry tree, green tree, bench, planter                               | 16×32 or smaller              |
-| Floors (grayscale patterns, colourised)             | Sidewalk paver, plaza tile, grass, boardwalk                                       | 16×16                         |
-| Backdrop                                            | Dusk sky + NJ skyline + NYC skyline + water                                        | ~1600×640                     |
+| Group                                               | Items                                                                                                     | Size / footprint              |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Buildings (non-walkable, with background roof rows) | Office tower, café, gym, arcade, loft, brownstone ×2 colours                                              | 64–80 px wide, 64–100 px tall |
+| Work spots                                          | Umbrella table (desk), stool (chair, 4 orientations), laptop (electronics, on/off)                        | 32×16, 16×16, 16×16           |
+| Leisure props                                       | Arcade cabinet (on/off, animated screen), weight rack, terrace table                                      | 16×32, 32×16, 16×16           |
+| Street                                              | Street lamp, cherry tree, green tree, bench, planter                                                      | 16×32 or smaller              |
+| Floors (grayscale patterns, colourised)             | Sidewalk paver, plaza tile, grass, boardwalk, ferry-lane water                                            | 16×16                         |
+| Travel                                              | Bike overlay (2-frame wheel spin, down/up/right; left mirrored), boat hull + wake (same directions), dock | 16×16 per frame, 32×16 dock   |
+| Backdrop                                            | Dusk sky + NJ skyline + NYC skyline + water                                                               | ~1600×640                     |
 
 Characters keep the existing six sheets in v1. Restyling them is a follow-up.
 
@@ -81,6 +97,8 @@ Characters keep the existing six sheets in v1. Restyling them is a follow-up.
 
 - **Webview unit tests (Node runner):**
   - `pickWanderTarget` (bias, no-leisure fallback, empty lists);
+  - `travelModeAt` and the speed multiplier per mode;
+  - island-side detection treating ferry tiles like VOID;
   - island-side detection;
   - `AreaDefinition.kind` round-trip through layout migration.
 - **Server tests:** unchanged. The protocol doesn't change.
@@ -89,11 +107,12 @@ Characters keep the existing six sheets in v1. Restyling them is a follow-up.
   - F5 and standalone, in a CSP-clean console;
   - frame time on the full map;
   - the idle agent visibly walks to a leisure hex;
+  - an agent crossing the bridge rides a bike, and one going between the gym and the arcade takes the boat;
   - the laptop switches on at a working seat.
 
 ## Delivery order
 
-1. **Engine:** Area kind, leisure wandering, backdrop layer, island sides, grid cap. Uses placeholder art.
+1. **Engine:** Area kind, leisure wandering, travel modes, backdrop layer, island sides, grid cap. Uses placeholder art.
 2. **Art:** floors, work spots, props, buildings, backdrop. Each batch is previewed before commit.
 3. **City layout and theme tokens:** `default-layout-2.json`, the classic-office export, UI palette, a11y fixes.
 4. **Follow-ups (not v1):** restyled characters, day/night tint, ambient townspeople and cars, more hexes.
@@ -103,6 +122,7 @@ Characters keep the existing six sheets in v1. Restyling them is a follow-up.
 - True hex movement or a hex grid model.
 - A 3D renderer (React Three Fiber). It can be revisited as an alternative renderer on the same `OfficeState`.
 - Background townspeople, traffic, and text chatter bubbles.
+- A scheduled ferry (a shared boat that docks, waits and carries several agents) or parked bikes. v1 boats and bikes exist only while an agent is on a tagged tile.
 - New character art.
 - Any upstream PR.
 
