@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 import { test } from 'vitest';
 
+import { AREA_DEFAULT_COLORS } from '../src/constants.js';
 import { updateAreaKind } from '../src/office/editor/editorActions.js';
 import {
   deserializeLayout,
@@ -10,6 +11,8 @@ import {
 } from '../src/office/layout/layoutSerializer.js';
 import type { OfficeLayout } from '../src/office/types.js';
 import { TileType } from '../src/office/types.js';
+
+const AREA_COLOR = AREA_DEFAULT_COLORS[0];
 
 function base(): OfficeLayout {
   return {
@@ -20,7 +23,7 @@ function base(): OfficeLayout {
     furniture: [],
     tileColors: [null, null],
     layoutRevision: 1,
-    areas: [{ label: 'Cafe', color: '#ffffff' }],
+    areas: [{ label: 'Cafe', color: AREA_COLOR }],
     areaTiles: ['Cafe', null],
     backdrop: { id: 'hudson', horizonRow: 3 },
   };

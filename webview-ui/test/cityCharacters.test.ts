@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 
 import { test } from 'vitest';
 
+import { AREA_DEFAULT_COLORS } from '../src/constants.js';
 import type { CityNav } from '../src/office/engine/characters.js';
 import { createCharacter, updateCharacter } from '../src/office/engine/characters.js';
 import { buildAreaKindGrid } from '../src/office/engine/cityRules.js';
 import type { OfficeLayout, TileType as TileTypeVal } from '../src/office/types.js';
 import { CharacterState, TileType } from '../src/office/types.js';
+
+const AREA_COLOR = AREA_DEFAULT_COLORS[0];
 
 const F = TileType.FLOOR_1;
 
@@ -18,7 +21,7 @@ function strip(): { tileMap: TileTypeVal[][]; nav: CityNav } {
     rows: 1,
     tiles: [F, F, F, F],
     furniture: [],
-    areas: [{ label: 'Bridge', color: '#ffffff', kind: 'bikeLane' }],
+    areas: [{ label: 'Bridge', color: AREA_COLOR, kind: 'bikeLane' }],
     areaTiles: [null, 'Bridge', 'Bridge', null],
   };
   return {

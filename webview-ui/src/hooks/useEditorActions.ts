@@ -28,6 +28,7 @@ import {
   rotateFurniture,
   toggleFurnitureState,
   updateAreaColor,
+  updateAreaKind,
 } from '../office/editor/editorActions.js';
 import type { EditorState } from '../office/editor/editorState.js';
 import type { OfficeState } from '../office/engine/officeState.js';
@@ -37,6 +38,7 @@ import {
   getToggledType,
 } from '../office/layout/furnitureCatalog.js';
 import type {
+  AreaKind,
   EditTool as EditToolType,
   OfficeLayout,
   PlacedFurniture,
@@ -96,6 +98,7 @@ interface EditorActions {
   handleRemoveArea: (label: string) => void;
   handleRenameArea: (oldLabel: string, newLabel: string) => void;
   handleAreaColorChange: (label: string, color: string) => void;
+  handleAreaKindChange: (label: string, kind: AreaKind | undefined) => void;
 }
 
 /** Default integer zoom (device pixels per sprite pixel) for a fresh session.
@@ -316,6 +319,18 @@ export function useEditorActions(
       const os = getOfficeState();
       const layout = os.getLayout();
       const next = updateAreaColor(layout, label, color);
+      if (next !== layout) {
+        applyEdit(next);
+      }
+    },
+    [getOfficeState, applyEdit],
+  );
+
+  const handleAreaKindChange = useCallback(
+    (label: string, kind: AreaKind | undefined) => {
+      const os = getOfficeState();
+      const layout = os.getLayout();
+      const next = updateAreaKind(layout, label, kind);
       if (next !== layout) {
         applyEdit(next);
       }
@@ -964,5 +979,6 @@ export function useEditorActions(
     handleRemoveArea,
     handleRenameArea,
     handleAreaColorChange,
+    handleAreaKindChange,
   };
 }

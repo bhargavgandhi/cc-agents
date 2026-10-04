@@ -420,6 +420,7 @@ function App() {
                   onRemoveArea={editor.handleRemoveArea}
                   onRenameArea={editor.handleRenameArea}
                   onAreaColorChange={editor.handleAreaColorChange}
+                  onAreaKindChange={editor.handleAreaKindChange}
                   onAreaMappingChange={handleAreaMappingChange}
                 />
               );

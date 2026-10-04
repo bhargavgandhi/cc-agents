@@ -129,6 +129,14 @@ export const AREA_DEFAULT_COLORS: readonly string[] = [
   '#54a0ff',
   '#ffa502',
 ] as const;
+/** Kind picker options on Area cards ('' = no kind). */
+export const AREA_KIND_OPTIONS = [
+  { value: '', label: 'Folder area' },
+  { value: 'work', label: 'Work' },
+  { value: 'leisure', label: 'Leisure' },
+  { value: 'bikeLane', label: 'Bike lane' },
+  { value: 'ferry', label: 'Ferry lane' },
+] as const;
 /** Translucent overlay alpha for area tile fills. */
 export const AREA_OVERLAY_ALPHA = 0.25;
 /** Alpha multiplier applied to the actively-selected area's overlay. */

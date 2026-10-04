@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 import { test } from 'vitest';
 
+import { AREA_DEFAULT_COLORS } from '../src/constants.js';
 import {
   buildAreaKindGrid,
   isIslandEdgeTile,
@@ -12,6 +13,8 @@ import {
 } from '../src/office/engine/cityRules.js';
 import type { OfficeLayout, TileType as TileTypeVal } from '../src/office/types.js';
 import { TileType } from '../src/office/types.js';
+
+const AREA_COLOR = AREA_DEFAULT_COLORS[0];
 
 const F = TileType.FLOOR_1;
 const V = TileType.VOID;
@@ -24,10 +27,10 @@ function layout3x3(areaTiles: Array<string | null>): OfficeLayout {
     tiles: new Array(9).fill(F),
     furniture: [],
     areas: [
-      { label: 'Cafe', color: '#ffffff', kind: 'leisure' },
-      { label: 'Bridge', color: '#ffffff', kind: 'bikeLane' },
-      { label: 'Ferry', color: '#ffffff', kind: 'ferry' },
-      { label: 'Repo', color: '#ffffff' },
+      { label: 'Cafe', color: AREA_COLOR, kind: 'leisure' },
+      { label: 'Bridge', color: AREA_COLOR, kind: 'bikeLane' },
+      { label: 'Ferry', color: AREA_COLOR, kind: 'ferry' },
+      { label: 'Repo', color: AREA_COLOR },
     ],
     areaTiles,
   };

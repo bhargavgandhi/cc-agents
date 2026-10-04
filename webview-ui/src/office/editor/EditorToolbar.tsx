@@ -9,6 +9,7 @@ import type { ColorValue } from '../../components/ui/types.js';
 import { VisualColorPicker } from '../../components/VisualColorPicker.js';
 import {
   AREA_DEFAULT_COLORS,
+  AREA_KIND_OPTIONS,
   CANVAS_FALLBACK_TILE_COLOR,
   EMPTY_SPRITE_THUMBNAIL_BG,
   PET_THUMB_SCALE_MARGIN,
@@ -29,7 +30,13 @@ import {
 } from '../sprites/carpetTiles.js';
 import { getPetName, getPetSprites } from '../sprites/petSpriteData.js';
 import { getCachedSprite } from '../sprites/spriteCache.js';
-import type { AreaDefinition, CarpetTile, SpriteData, TileType as TileTypeVal } from '../types.js';
+import type {
+  AreaDefinition,
+  AreaKind,
+  CarpetTile,
+  SpriteData,
+  TileType as TileTypeVal,
+} from '../types.js';
 import { EditTool } from '../types.js';
 import { getWallSetCount, getWallSetPreviewSprite } from '../wallTiles.js';
 
@@ -80,6 +87,7 @@ interface EditorToolbarProps {
   onRemoveArea: (label: string) => void;
   onRenameArea: (oldLabel: string, newLabel: string) => void;
   onAreaColorChange: (label: string, color: string) => void;
+  onAreaKindChange: (label: string, kind: AreaKind | undefined) => void;
   onAreaMappingChange: (folderName: string, areaLabel: string, action: 'add' | 'remove') => void;
 }
 
@@ -125,6 +133,7 @@ export function EditorToolbar({
   onRemoveArea,
   onRenameArea,
   onAreaColorChange,
+  onAreaKindChange,
   onAreaMappingChange,
 }: EditorToolbarProps) {
   const [activeCategory, setActiveCategory] = useState<FurniturePanelCategory>('desks');
@@ -448,6 +457,7 @@ export function EditorToolbar({
                   onRename={(newLabel) => onRenameArea(area.label, newLabel)}
                   onRemove={() => onRemoveArea(area.label)}
                   onColorChange={(c) => onAreaColorChange(area.label, c)}
+                  onKindChange={(k) => onAreaKindChange(area.label, k)}
                   workspaceFolders={workspaceFolders}
                   areaMappings={areaMappings}
                   onAreaMappingChange={onAreaMappingChange}
@@ -758,6 +768,7 @@ function AreaCard({
   onRename,
   onRemove,
   onColorChange,
+  onKindChange,
   workspaceFolders,
   areaMappings,
   onAreaMappingChange,
@@ -768,6 +779,7 @@ function AreaCard({
   onRename: (newLabel: string) => void;
   onRemove: () => void;
   onColorChange: (color: string) => void;
+  onKindChange: (kind: AreaKind | undefined) => void;
   workspaceFolders: { name: string; path: string }[];
   areaMappings: Record<string, string[]>;
   onAreaMappingChange: (folderName: string, areaLabel: string, action: 'add' | 'remove') => void;
@@ -856,6 +868,20 @@ function AreaCard({
           x
         </Button>
       </div>
+
+      <select
+        aria-label={`Kind of area ${area.label}`}
+        value={area.kind ?? ''}
+        onClick={(e) => e.stopPropagation()}
+        onChange={(e) => onKindChange((e.target.value || undefined) as AreaKind | undefined)}
+        className="text-xs py-2 px-4 bg-bg border-2 border-border rounded-none text-text"
+      >
+        {AREA_KIND_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
 
       <div className="flex flex-col gap-2 max-h-80 overflow-y-auto pixel-scrollbar">
         {mappedFolders.length === 0 ? (
