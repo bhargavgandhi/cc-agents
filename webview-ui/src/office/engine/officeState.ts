@@ -38,7 +38,8 @@ import type {
   TileType as TileTypeVal,
 } from '../types.js';
 import { CharacterState, Direction, PetState, TILE_SIZE } from '../types.js';
-import { createCharacter, updateCharacter } from './characters.js';
+import { type CityNav, createCharacter, updateCharacter } from './characters.js';
+import { buildAreaKindGrid, leisureTilesOf } from './cityRules.js';
 import { advanceMatrixEffect, startMatrixEffect } from './matrixEffectState.js';
 import { createPet, updatePet } from './petEntity.js';
 import { anchorTile, closestFreeSeat } from './seatPlacement.js';
@@ -58,6 +59,8 @@ export class OfficeState {
   blockedTiles: Set<string>;
   furniture: FurnitureInstance[];
   walkableTiles: Array<{ col: number; row: number }>;
+  /** City-theme navigation (area kinds + leisure tiles), rebuilt with the layout. */
+  cityNav: CityNav;
   characters: Map<number, Character> = new Map();
   pets: Pet[] = [];
   /** Accumulated time for furniture animation frame cycling */
@@ -112,6 +115,7 @@ export class OfficeState {
     this.blockedTiles = getBlockedTiles(this.layout.furniture);
     this.furniture = layoutToFurnitureInstances(this.layout.furniture);
     this.walkableTiles = getWalkableTiles(this.tileMap, this.blockedTiles);
+    this.cityNav = this.buildCityNav();
     // Pets are built last because they need walkableTiles populated for spawn.
     this.rebuildPetsFromLayout(this.layout);
   }
@@ -125,6 +129,7 @@ export class OfficeState {
     this.blockedTiles = getBlockedTiles(layout.furniture);
     this.rebuildFurnitureInstances();
     this.walkableTiles = getWalkableTiles(this.tileMap, this.blockedTiles);
+    this.cityNav = this.buildCityNav();
 
     // Shift character positions when grid expands left/up
     if (shift && (shift.col !== 0 || shift.row !== 0)) {
@@ -235,6 +240,15 @@ export class OfficeState {
   }
 
   /** Move a character to a random walkable tile */
+  private buildCityNav(): CityNav {
+    const kinds = buildAreaKindGrid(this.layout);
+    return {
+      kinds,
+      cols: this.layout.cols,
+      leisureTiles: leisureTilesOf(this.walkableTiles, kinds, this.layout.cols),
+    };
+  }
+
   private relocateCharacterToWalkable(ch: Character): void {
     if (this.walkableTiles.length === 0) return;
     const spawn = this.walkableTiles[Math.floor(Math.random() * this.walkableTiles.length)];
@@ -1111,7 +1125,15 @@ export class OfficeState {
 
       // Temporarily unblock own seat so character can pathfind to it
       this.withOwnSeatUnblocked(ch, () =>
-        updateCharacter(ch, dt, this.walkableTiles, this.seats, this.tileMap, this.blockedTiles),
+        updateCharacter(
+          ch,
+          dt,
+          this.walkableTiles,
+          this.seats,
+          this.tileMap,
+          this.blockedTiles,
+          this.cityNav,
+        ),
       );
 
       // Tick bubble timer for waiting bubbles
