@@ -82,6 +82,28 @@ export const WS_CLOSE_UNAUTHORIZED = 4001;
  *  a drive-by web page and the privileged client-message channel. */
 export const WS_CLOSE_FORBIDDEN_ORIGIN = 4003;
 
+// ── HTTP security headers (set on every response) ───────────
+/** The standalone SPA is one same-origin module script + one stylesheet + one
+ *  font, talking to `/ws` on its own origin, so `'self'` covers everything it
+ *  loads. React's `style={}` props go through the CSSOM, which CSP does not
+ *  govern, so no `'unsafe-inline'`. `frame-ancestors 'none'` stops other sites
+ *  framing the office (clickjacking the hooks toggle). */
+export const HTTP_CONTENT_SECURITY_POLICY = [
+  "default-src 'none'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "font-src 'self'",
+  "img-src 'self'",
+  "connect-src 'self'",
+  "base-uri 'none'",
+  "form-action 'none'",
+  "frame-ancestors 'none'",
+].join('; ');
+export const HTTP_SECURITY_HEADERS: Readonly<Record<string, string>> = {
+  'Content-Security-Policy': HTTP_CONTENT_SECURITY_POLICY,
+  'X-Content-Type-Options': 'nosniff',
+};
+
 export const HOOK_EVENT_BUFFER_MS = 5_000;
 /** Grace period after SessionEnd(reason=clear/resume) before triggering onSessionEnd.
  *  /clear and /resume fire SessionEnd then SessionStart within ms. This timeout is a

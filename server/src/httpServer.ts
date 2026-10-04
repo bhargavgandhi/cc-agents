@@ -14,6 +14,7 @@ import type {
 import { handleClientMessage } from './clientMessageHandler.js';
 import {
   HOOK_API_PREFIX,
+  HTTP_SECURITY_HEADERS,
   MAX_HOOK_BODY_SIZE,
   WS_CLOSE_FORBIDDEN_ORIGIN,
   WS_CLOSE_UNAUTHORIZED,
@@ -69,6 +70,9 @@ export async function createHttpServer(options: HttpServerOptions): Promise<Http
   // No CORS: every browser caller is same-origin (the standalone SPA and its
   // /ws) and the hook script is not a browser. Reflecting any Origin let every
   // website read these responses.
+  app.addHook('onSend', async (_request, reply) => {
+    reply.headers(HTTP_SECURITY_HEADERS);
+  });
   await app.register(fastifyWebsocket);
 
   // Static SPA serving (standalone mode only)
