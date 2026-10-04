@@ -8,6 +8,9 @@ import {
   AREA_LABEL_SHADOW_ALPHA,
   AREA_LABEL_SHADOW_COLOR,
   AREA_OVERLAY_ALPHA,
+  BACKDROP_PARALLAX,
+  BACKDROP_SKY_COLOR,
+  BACKDROP_WATER_COLOR,
   BUBBLE_FADE_DURATION_SEC,
   BUBBLE_SITTING_OFFSET_PX,
   BUBBLE_VERTICAL_OFFSET_PX,
@@ -33,6 +36,11 @@ import {
   GRID_LINE_COLOR,
   HEADLESS_CHARACTER_ALPHA,
   HOVERED_OUTLINE_ALPHA,
+  ISLAND_SHADOW_COLOR,
+  ISLAND_SHADOW_PX,
+  ISLAND_SIDE_COLOR,
+  ISLAND_SIDE_DARK_COLOR,
+  ISLAND_SIDE_PX,
   OUTLINE_Z_SORT_OFFSET,
   ROTATE_BUTTON_BG,
   SEAT_AVAILABLE_COLOR,
@@ -59,8 +67,10 @@ import {
   BUBBLE_WAITING_SPRITE,
   getCharacterSprites,
 } from '../sprites/spriteData.js';
+import { BIKE_SPRITE, BOAT_SPRITE } from '../sprites/travelSprites.js';
 import type {
   AreaDefinition,
+  AreaKind,
   CarpetTile,
   Character,
   FurnitureInstance,
@@ -72,6 +82,7 @@ import type {
 import { CharacterState, TILE_SIZE, TileType } from '../types.js';
 import { getWallInstances, hasWallSprites, wallColorToHex } from '../wallTiles.js';
 import { getCharacterSprite } from './characters.js';
+import { isIslandEdgeTile } from './cityRules.js';
 import { renderMatrixEffect } from './matrixEffect.js';
 import { getPetSpriteData } from './petEntity.js';
 
@@ -279,6 +290,8 @@ export function renderAreaLabels(
   ctx.textBaseline = 'middle';
 
   for (const [label, acc] of centroids) {
+    const kind = areas.find((a) => a.label === label)?.kind;
+    if (kind === 'bikeLane' || kind === 'ferry') continue;
     const cx = offsetX + (acc.sumX / acc.count + 0.5) * s;
     const cy = offsetY + (acc.sumY / acc.count + 0.5) * s;
 
@@ -445,17 +458,24 @@ export function renderScene(
       });
     }
 
+    const travelSprite =
+      ch.travelMode === 'bike' ? BIKE_SPRITE : ch.travelMode === 'boat' ? BOAT_SPRITE : null;
+    const travelCached = travelSprite ? getCachedSprite(travelSprite, zoom) : null;
+    const travelX = travelCached ? Math.round(offsetX + ch.x * zoom - travelCached.width / 2) : 0;
+    const travelY = travelCached
+      ? Math.round(offsetY + ch.y * zoom - travelCached.height + 2 * zoom)
+      : 0;
+
     drawables.push({
       zY: charZY,
       draw: (c) => {
-        if (alpha === 1) {
-          c.drawImage(cached, drawX, drawY);
-          return;
+        if (alpha !== 1) {
+          c.save();
+          c.globalAlpha = alpha;
         }
-        c.save();
-        c.globalAlpha = alpha;
         c.drawImage(cached, drawX, drawY);
-        c.restore();
+        if (travelCached) c.drawImage(travelCached, travelX, travelY);
+        if (alpha !== 1) c.restore();
       },
     });
   }
@@ -882,6 +902,70 @@ export interface SelectionRenderState {
   characters: Map<number, Character>;
 }
 
+/** Skyline backdrop passed to renderFrame when the layout names one. */
+export interface BackdropRenderState {
+  image: HTMLImageElement | null;
+  horizonRow: number;
+  areaKinds: Array<AreaKind | null>;
+}
+
+/** Water fill + skyline image, drawn before the tile grid. */
+function renderBackdrop(
+  ctx: CanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  backdrop: BackdropRenderState,
+  offsetX: number,
+  offsetY: number,
+  zoom: number,
+  cols: number,
+): void {
+  const horizonY = offsetY + backdrop.horizonRow * TILE_SIZE * zoom;
+  ctx.fillStyle = BACKDROP_SKY_COLOR;
+  ctx.fillRect(0, 0, canvasWidth, Math.max(0, horizonY));
+  ctx.fillStyle = BACKDROP_WATER_COLOR;
+  ctx.fillRect(0, Math.max(0, horizonY), canvasWidth, canvasHeight);
+  const img = backdrop.image;
+  if (!img) return;
+  const w = img.naturalWidth * zoom;
+  const h = img.naturalHeight * zoom;
+  const mapCenterX = offsetX + (cols * TILE_SIZE * zoom) / 2;
+  const x = Math.round(
+    canvasWidth / 2 + (mapCenterX - canvasWidth / 2) * BACKDROP_PARALLAX - w / 2,
+  );
+  const prevSmoothing = ctx.imageSmoothingEnabled;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, x, Math.round(horizonY - h), w, h);
+  ctx.imageSmoothingEnabled = prevSmoothing;
+}
+
+/** Earth side + water shadow under every ground tile that borders water to the south. */
+function renderIslandSides(
+  ctx: CanvasRenderingContext2D,
+  tileMap: TileTypeVal[][],
+  areaKinds: Array<AreaKind | null>,
+  offsetX: number,
+  offsetY: number,
+  zoom: number,
+): void {
+  const s = TILE_SIZE * zoom;
+  const side = ISLAND_SIDE_PX * zoom;
+  const shadow = ISLAND_SHADOW_PX * zoom;
+  for (let r = 0; r < tileMap.length; r++) {
+    for (let c = 0; c < tileMap[r].length; c++) {
+      if (!isIslandEdgeTile(tileMap, areaKinds, c, r)) continue;
+      const x = offsetX + c * s;
+      const y = offsetY + (r + 1) * s;
+      ctx.fillStyle = ISLAND_SHADOW_COLOR;
+      ctx.fillRect(x + zoom * 2, y + side, s, shadow);
+      ctx.fillStyle = ISLAND_SIDE_COLOR;
+      ctx.fillRect(x, y, s, side);
+      ctx.fillStyle = ISLAND_SIDE_DARK_COLOR;
+      ctx.fillRect(x, y + side - zoom, s, zoom);
+    }
+  }
+}
+
 export function renderFrame(
   ctx: CanvasRenderingContext2D,
   canvasWidth: number,
@@ -903,6 +987,7 @@ export function renderFrame(
   showAreas?: boolean,
   activeAreaLabel?: string | null,
   pets?: Pet[],
+  backdrop?: BackdropRenderState,
 ): { offsetX: number; offsetY: number } {
   // Clear
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -915,8 +1000,15 @@ export function renderFrame(
   // the DOM overlays so a label lands exactly on the sprite it belongs to.
   const { offsetX, offsetY } = mapOffset(canvasWidth, canvasHeight, cols, rows, zoom, panX, panY);
 
+  if (backdrop) {
+    renderBackdrop(ctx, canvasWidth, canvasHeight, backdrop, offsetX, offsetY, zoom, cols);
+  }
+
   // Draw tiles (floor + wall base color)
   renderTileGrid(ctx, tileMap, offsetX, offsetY, zoom, tileColors, layoutCols);
+  if (backdrop) {
+    renderIslandSides(ctx, tileMap, backdrop.areaKinds, offsetX, offsetY, zoom);
+  }
 
   // Carpet layer (above floor, below seat indicators / furniture / characters)
   if (carpetTiles && carpetTiles.length > 0) {

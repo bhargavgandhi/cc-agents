@@ -10,6 +10,7 @@ import {
 } from '../../constants.js';
 import { unlockAudio } from '../../notificationSound.js';
 import { transport } from '../../transport/index.js';
+import { getBackdropImage } from '../backdrops.js';
 import { getColorizedSprite } from '../colorize.js';
 import { canPlaceFurniture, getWallPlacementRow } from '../editor/editorActions.js';
 import type { EditorState } from '../editor/editorState.js';
@@ -294,6 +295,13 @@ export function OfficeCanvas({
           showAreas,
           activeAreaLabel,
           officeState.pets,
+          layout.backdrop
+            ? {
+                image: getBackdropImage(layout.backdrop.id),
+                horizonRow: layout.backdrop.horizonRow,
+                areaKinds: officeState.cityNav.kinds,
+              }
+            : undefined,
         );
         offsetRef.current = { x: offsetX, y: offsetY };
 
