@@ -1,5 +1,6 @@
 import {
   DEFAULT_MAX_CONTEXT_TOKENS,
+  LEISURE_WANDER_BIAS,
   SEAT_REST_MAX_SEC,
   SEAT_REST_MIN_SEC,
   TYPE_FRAME_DURATION_SEC,
@@ -13,8 +14,9 @@ import {
 import { findPath } from '../layout/tileMap.js';
 import type { CharacterSprites } from '../sprites/spriteData.js';
 import { isReadingToolName } from '../toolUtils.js';
-import type { Character, Seat, SpriteData, TileType as TileTypeVal } from '../types.js';
+import type { AreaKind, Character, Seat, SpriteData, TileType as TileTypeVal } from '../types.js';
 import { CharacterState, Direction, TILE_SIZE } from '../types.js';
+import { pickWanderTarget, speedMultiplier, travelModeAt } from './cityRules.js';
 
 /** Whether a tool should show the reading animation (vs typing). Taxonomy comes
  *  from the active HookProvider via the `providerCapabilities` message. */
@@ -44,6 +46,15 @@ function directionBetween(
   if (dc < 0) return Direction.LEFT;
   if (dr > 0) return Direction.DOWN;
   return Direction.UP;
+}
+
+/** City-theme navigation data, derived once per layout by OfficeState. */
+export interface CityNav {
+  /** Per-tile Area kind (row-major). */
+  kinds: Array<AreaKind | null>;
+  cols: number;
+  /** Walkable tiles inside `leisure` Areas — preferred idle wander targets. */
+  leisureTiles: Array<{ col: number; row: number }>;
 }
 
 export function createCharacter(
@@ -96,6 +107,7 @@ export function updateCharacter(
   seats: Map<string, Seat>,
   tileMap: TileTypeVal[][],
   blockedTiles: Set<string>,
+  nav?: CityNav,
 ): void {
   ch.frameTimer += dt;
 
@@ -186,8 +198,12 @@ export function updateCharacter(
             }
           }
         }
-        if (walkableTiles.length > 0) {
-          const target = walkableTiles[Math.floor(Math.random() * walkableTiles.length)];
+        const target = nav
+          ? pickWanderTarget(walkableTiles, nav.leisureTiles, LEISURE_WANDER_BIAS)
+          : walkableTiles.length > 0
+            ? walkableTiles[Math.floor(Math.random() * walkableTiles.length)]
+            : null;
+        if (target) {
           const path = findPath(
             ch.tileCol,
             ch.tileRow,
@@ -222,6 +238,7 @@ export function updateCharacter(
         const center = tileCenter(ch.tileCol, ch.tileRow);
         ch.x = center.x;
         ch.y = center.y;
+        ch.travelMode = undefined;
 
         if (ch.isActive) {
           if (!ch.seatId) {
@@ -272,7 +289,9 @@ export function updateCharacter(
       const nextTile = ch.path[0];
       ch.dir = directionBetween(ch.tileCol, ch.tileRow, nextTile.col, nextTile.row);
 
-      ch.moveProgress += (WALK_SPEED_PX_PER_SEC / TILE_SIZE) * dt;
+      const mode = nav ? travelModeAt(ch.tileCol, ch.tileRow, nav.kinds, nav.cols) : 'walk';
+      ch.travelMode = mode === 'walk' ? undefined : mode;
+      ch.moveProgress += (WALK_SPEED_PX_PER_SEC / TILE_SIZE) * speedMultiplier(mode) * dt;
 
       const fromCenter = tileCenter(ch.tileCol, ch.tileRow);
       const toCenter = tileCenter(nextTile.col, nextTile.row);
