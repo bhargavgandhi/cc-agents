@@ -15,6 +15,10 @@ declare global {
         waitingAwaitingInput?: boolean;
         isHeadless?: boolean;
         isGreeter?: boolean;
+        state: string;
+        tileCol: number;
+        tileRow: number;
+        travelMode?: 'walk' | 'bike' | 'boat';
       }>;
       /** Effective "Display headless as ghosts" setting the renderer is using. */
       getGhostHeadlessAgents?: () => boolean;
@@ -129,6 +133,10 @@ export function installTestHooks(officeStateRef: { current: OfficeState | null }
       waitingAwaitingInput: ch.waitingAwaitingInput,
       isHeadless: ch.isHeadless,
       isGreeter: ch.isGreeter,
+      state: ch.state,
+      tileCol: ch.tileCol,
+      tileRow: ch.tileRow,
+      travelMode: ch.travelMode,
     }));
   };
 
