@@ -4,8 +4,8 @@ import type { ColorValue } from './components/ui/types.js';
 export const TILE_SIZE = 16;
 export const DEFAULT_COLS = 20;
 export const DEFAULT_ROWS = 11;
-export const MAX_COLS = 64;
-export const MAX_ROWS = 64;
+export const MAX_COLS = 96;
+export const MAX_ROWS = 96;
 
 // ── Character Animation ─────────────────────────────────────
 export const WALK_SPEED_PX_PER_SEC = 48;
@@ -312,3 +312,22 @@ export const PET_THUMB_SCALE_MARGIN = 0.85;
 export const EMPTY_SPRITE_THUMBNAIL_BG = '#333';
 /** Maximum string length for a PlacedPet.id (defends against pathologically-long layout entries). */
 export const MAX_PET_ID_LENGTH = 128;
+
+// ── City (Hudson Hex City theme) ────────────────────────────
+/** Probability an idle agent's next wander target is inside a `leisure` Area. */
+export const LEISURE_WANDER_BIAS = 0.7;
+/** Walk-speed multipliers while on `bikeLane` / `ferry` Area tiles. */
+export const BIKE_SPEED_MULT = 2;
+export const BOAT_SPEED_MULT = 1.5;
+/** Island side face height (sprite px) drawn under tiles whose south neighbour is water. */
+export const ISLAND_SIDE_PX = 6;
+export const ISLAND_SIDE_COLOR = '#46392f';
+export const ISLAND_SIDE_DARK_COLOR = '#2f261f';
+export const ISLAND_SHADOW_COLOR = 'rgba(10, 14, 40, 0.35)';
+export const ISLAND_SHADOW_PX = 4;
+/** Water fill behind a layout that names a backdrop. */
+export const BACKDROP_WATER_COLOR = '#2f4176';
+/** Sky fill above the backdrop image. */
+export const BACKDROP_SKY_COLOR = '#232046';
+/** Horizontal parallax factor of the skyline (0 = fixed to screen, 1 = fixed to map). */
+export const BACKDROP_PARALLAX = 0.3;

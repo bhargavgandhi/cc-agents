@@ -138,12 +138,28 @@ export interface CarpetTile {
 // AREAS — translucent named overlays for workspace folder ↔ seat preference.
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** What an Area is for. Absent = a plain folder-mapping Area (pre-city behaviour). */
+export type AreaKind = 'work' | 'leisure' | 'bikeLane' | 'ferry';
+
 export interface AreaDefinition {
   /** Stable label used as the FK in `areaTiles` and `OfficeState.areaMappings`. */
   label: string;
   /** Hex color (e.g. "#ff6b6b"). RGB only — alpha applied at render time. */
   color: string;
+  /** Optional purpose. Layouts without it behave exactly as before. */
+  kind?: AreaKind;
 }
+
+/** A skyline image drawn behind the map, over a water fill. */
+export interface LayoutBackdrop {
+  /** Key into the bundled backdrop registry (office/backdrops.ts). */
+  id: string;
+  /** Map row the bottom edge of the skyline image sits on. */
+  horizonRow: number;
+}
+
+/** How a character is currently moving. Drives sprite overlay + speed. */
+export type TravelMode = 'walk' | 'bike' | 'boat';
 
 export interface OfficeLayout {
   version: 1;
@@ -163,6 +179,8 @@ export interface OfficeLayout {
   areas?: AreaDefinition[];
   /** Per-tile Area label, parallel to tiles array. null = no area assignment. */
   areaTiles?: Array<string | null>;
+  /** Optional skyline backdrop. When set, VOID renders as water and islands get sides. */
+  backdrop?: LayoutBackdrop;
 }
 
 export interface Character {
@@ -252,6 +270,10 @@ export interface Character {
   contextTokens: number;
   /** Window `contextTokens` is measured against. */
   maxContextTokens: number;
+
+  // -- City travel --
+  /** Set by the FSM while walking across bike-lane / ferry tiles; absent = walking. */
+  travelMode?: TravelMode;
 }
 
 export const PetState = { IDLE: 'idle', WALK: 'walk', FOLLOW: 'follow' } as const;
