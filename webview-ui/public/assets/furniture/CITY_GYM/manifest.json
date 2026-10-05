@@ -1,0 +1,13 @@
+{
+  "id": "CITY_GYM",
+  "name": "Riverside Gym",
+  "category": "decor",
+  "type": "asset",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 3,
+  "width": 80,
+  "height": 80,
+  "footprintW": 5,
+  "footprintH": 5
+}

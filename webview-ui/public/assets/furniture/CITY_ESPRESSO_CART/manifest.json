@@ -1,0 +1,32 @@
+{
+  "id": "CITY_ESPRESSO_CART",
+  "name": "Espresso Cart",
+  "category": "decor",
+  "type": "group",
+  "groupType": "animation",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 1,
+  "members": [
+    {
+      "type": "asset",
+      "id": "CITY_ESPRESSO_CART_1",
+      "file": "CITY_ESPRESSO_CART_1.png",
+      "width": 32,
+      "height": 32,
+      "footprintW": 2,
+      "footprintH": 2,
+      "frame": 0
+    },
+    {
+      "type": "asset",
+      "id": "CITY_ESPRESSO_CART_2",
+      "file": "CITY_ESPRESSO_CART_2.png",
+      "width": 32,
+      "height": 32,
+      "footprintW": 2,
+      "footprintH": 2,
+      "frame": 1
+    }
+  ]
+}

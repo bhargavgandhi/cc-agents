@@ -1,0 +1,42 @@
+{
+  "id": "CITY_ARCADE_CABINET",
+  "name": "Arcade Cabinet",
+  "category": "decor",
+  "type": "group",
+  "groupType": "animation",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 1,
+  "members": [
+    {
+      "type": "asset",
+      "id": "CITY_ARCADE_CABINET_1",
+      "file": "CITY_ARCADE_CABINET_1.png",
+      "width": 16,
+      "height": 32,
+      "footprintW": 1,
+      "footprintH": 2,
+      "frame": 0
+    },
+    {
+      "type": "asset",
+      "id": "CITY_ARCADE_CABINET_2",
+      "file": "CITY_ARCADE_CABINET_2.png",
+      "width": 16,
+      "height": 32,
+      "footprintW": 1,
+      "footprintH": 2,
+      "frame": 1
+    },
+    {
+      "type": "asset",
+      "id": "CITY_ARCADE_CABINET_3",
+      "file": "CITY_ARCADE_CABINET_3.png",
+      "width": 16,
+      "height": 32,
+      "footprintW": 1,
+      "footprintH": 2,
+      "frame": 2
+    }
+  ]
+}
