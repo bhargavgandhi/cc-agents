@@ -14,17 +14,20 @@ export function MigrationNotice({ onDismiss }: MigrationNoticeProps) {
         className="pixel-panel py-24 px-32 max-w-xl text-center leading-[1.3]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-5xl mb-12 text-accent">We owe you an apology!</div>
+        <div className="text-5xl mb-12 text-accent">Welcome to Hudson Hex City</div>
         <p className="text-xl m-0 mb-12">
-          We've just migrated to fully open-source assets, all built from scratch with love.
-          Unfortunately, this means your previous layout had to be reset.
+          The office is now a miniature city on the Hudson. Agents work at the plaza tables and head
+          to the café, gym or arcade when they finish, riding the bridge by bike or the ferry by
+          boat.
         </p>
-        <p className="text-xl m-0 mb-12">We're really sorry about that.</p>
         <p className="text-xl m-0 mb-12">
-          The good news? This was a one-time thing, and it paves the way for some genuinely exciting
-          updates ahead.
+          Your previous layout was replaced, but not lost: a copy is saved in{' '}
+          <code>~/.pixel-agents/</code> as <code>layout.backup-rev*.json</code>. Bring it back with
+          Settings → Import Layout.
         </p>
-        <p className="text-xl m-0 mb-20">Stay tuned, and thanks for using Pixel Agents!</p>
+        <p className="text-xl m-0 mb-20">
+          The original office ships as <code>assets/layouts/classic-office.json</code>.
+        </p>
         <Button variant="accent" size="xl" onClick={onDismiss}>
           Got it
         </Button>

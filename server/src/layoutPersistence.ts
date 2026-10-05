@@ -3,6 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 import {
+  LAYOUT_BACKUP_PREFIX,
   LAYOUT_FILE_DIR,
   LAYOUT_FILE_NAME,
   LAYOUT_FILE_POLL_INTERVAL_MS,
@@ -46,6 +47,37 @@ export function writeLayoutToFile(layout: Record<string, unknown>): void {
   }
 }
 
+/** Path of the one-time backup taken before a revision reset replaces `layout.json`. */
+export function getLayoutBackupPath(revision: number): string {
+  return path.join(os.homedir(), LAYOUT_FILE_DIR, `${LAYOUT_BACKUP_PREFIX}${revision}.json`);
+}
+
+/**
+ * Copy `layout.json` to `layout.backup-rev<N>.json` before a reset. Exclusive
+ * create: an existing backup for that revision is the user's original and is
+ * never overwritten (a second reset of the same revision is a no-op backup).
+ * Returns false only when no backup exists afterwards.
+ */
+function backupLayoutFile(revision: number): boolean {
+  const backupPath = getLayoutBackupPath(revision);
+  try {
+    fs.copyFileSync(getLayoutFilePath(), backupPath, fs.constants.COPYFILE_EXCL);
+    console.log(`[Pixel Agents] Backed up previous layout to ${backupPath}`);
+    return true;
+  } catch (err) {
+    // An earlier backup counts only if it is a real file (not, say, a directory).
+    if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
+      try {
+        if (fs.statSync(backupPath).isFile()) return true;
+      } catch {
+        /* fall through: treat as no backup */
+      }
+    }
+    console.error('[Pixel Agents] Failed to back up layout before reset:', err);
+    return false;
+  }
+}
+
 interface LayoutLoadResult {
   layout: Record<string, unknown>;
   /** True when the user's saved layout was replaced by a newer bundled default */
@@ -72,6 +104,14 @@ export function loadLayout(
     const fileRevision = (fromFile[LAYOUT_REVISION_KEY] as number) ?? 0;
     const defaultRevision = (defaultLayout?.[LAYOUT_REVISION_KEY] as number) ?? 0;
     if (defaultRevision > fileRevision) {
+      // No backup ⇒ no reset: replacing a layout we couldn't save first would
+      // destroy the user's work, so keep it and skip the newer default.
+      if (!backupLayoutFile(fileRevision)) {
+        console.warn(
+          `[Pixel Agents] Layout revision outdated (${fileRevision} < ${defaultRevision}) but the backup failed; keeping the saved layout`,
+        );
+        return { layout: fromFile, wasReset: false };
+      }
       console.log(
         `[Pixel Agents] Layout revision outdated (${fileRevision} < ${defaultRevision}), resetting to bundled default`,
       );

@@ -115,6 +115,8 @@ export const MAX_HOOK_BODY_SIZE = 65_536; // 64KB
 // ── Layout/Config Persistence ──────────────────────────────
 export const LAYOUT_FILE_DIR = '.pixel-agents';
 export const LAYOUT_FILE_NAME = 'layout.json';
+/** Backup written before a bundled-default revision reset: `layout.backup-rev<N>.json`. */
+export const LAYOUT_BACKUP_PREFIX = 'layout.backup-rev';
 export const LAYOUT_FILE_POLL_INTERVAL_MS = 2000;
 export const LAYOUT_REVISION_KEY = 'layoutRevision';
 export const CONFIG_FILE_NAME = 'config.json';
