@@ -8,6 +8,13 @@ import {
   AREA_LABEL_SHADOW_ALPHA,
   AREA_LABEL_SHADOW_COLOR,
   AREA_OVERLAY_ALPHA,
+  AREA_SIGN_BORDER_COLOR,
+  AREA_SIGN_FONT_SIZE_PX,
+  AREA_SIGN_GAP_PX,
+  AREA_SIGN_PAD_X_PX,
+  AREA_SIGN_PAD_Y_PX,
+  AREA_SIGN_SHADOW_COLOR,
+  AREA_SIGN_TEXT_COLOR,
   BACKDROP_PARALLAX,
   BACKDROP_SKY_COLOR,
   BACKDROP_WATER_COLOR,
@@ -81,6 +88,7 @@ import type {
 } from '../types.js';
 import { CharacterState, TILE_SIZE, TileType } from '../types.js';
 import { getWallInstances, hasWallSprites, wallColorToHex } from '../wallTiles.js';
+import { areaLabelAnchors } from './areaLabels.js';
 import { getCharacterSprite } from './characters.js';
 import { isIslandEdgeTile } from './cityRules.js';
 import { renderMatrixEffect } from './matrixEffect.js';
@@ -240,9 +248,9 @@ export function renderAreaOverlay(
 }
 
 /**
- * Render the centroid label for each Area, ABOVE characters/bubbles. Centroid
- * = arithmetic mean of all tile centers belonging to a given label. Pixel-art
- * drop shadow (no blur) for legibility on light backgrounds.
+ * Render each Area's name, ABOVE characters/bubbles. Office areas get centroid
+ * text with a pixel-art drop shadow (no blur); city hexes (areas with a
+ * `kind`) get a street-sign pill below their bottom edge (see areaLabelAnchors).
  *
  * @internal
  */
@@ -256,54 +264,54 @@ export function renderAreaLabels(
   offsetY: number,
   zoom: number,
 ): void {
-  if (!areaTiles || areaTiles.length === 0) return;
-  if (!areas || areas.length === 0) return;
+  const anchors = areaLabelAnchors(areaTiles, areas, cols, rows);
+  if (anchors.length === 0 || !areas) return;
 
   const s = TILE_SIZE * zoom;
   const colorMap = new Map<string, string>();
   for (const a of areas) colorMap.set(a.label, a.color);
 
-  // Centroid accumulator: label → { sumX, sumY, count }.
-  const centroids = new Map<string, { sumX: number; sumY: number; count: number }>();
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const label = areaTiles[r * cols + c];
-      if (!label) continue;
-      const acc = centroids.get(label);
-      if (acc) {
-        acc.sumX += c;
-        acc.sumY += r;
-        acc.count += 1;
-      } else {
-        centroids.set(label, { sumX: c, sumY: r, count: 1 });
-      }
-    }
-  }
-
-  if (centroids.size === 0) return;
-
   const fontSize = Math.max(AREA_LABEL_FONT_SIZE_PX * zoom, AREA_LABEL_MIN_FONT_SIZE_PX);
+  const signFontSize = Math.max(AREA_SIGN_FONT_SIZE_PX * zoom, AREA_LABEL_MIN_FONT_SIZE_PX);
 
   ctx.save();
-  ctx.font = `bold ${fontSize}px 'FS Pixel Sans'`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  for (const [label, acc] of centroids) {
-    const kind = areas.find((a) => a.label === label)?.kind;
-    if (kind === 'bikeLane' || kind === 'ferry') continue;
-    const cx = offsetX + (acc.sumX / acc.count + 0.5) * s;
-    const cy = offsetY + (acc.sumY / acc.count + 0.5) * s;
-
+  for (const anchor of anchors) {
+    const color = colorMap.get(anchor.label) ?? AREA_LABEL_FALLBACK_COLOR;
+    const cx = Math.round(offsetX + anchor.x * s);
+    if (anchor.style === 'sign') {
+      ctx.font = `${signFontSize}px 'FS Pixel Sans'`;
+      const padX = AREA_SIGN_PAD_X_PX * zoom;
+      const padY = AREA_SIGN_PAD_Y_PX * zoom;
+      const border = Math.max(1, Math.round(zoom));
+      const w = Math.ceil(ctx.measureText(anchor.label).width) + padX * 2;
+      const h = signFontSize + padY * 2;
+      const x = Math.round(cx - w / 2);
+      // Hang below the island's side face so the pill never covers the rim.
+      const y = Math.round(offsetY + anchor.y * s + (ISLAND_SIDE_PX + AREA_SIGN_GAP_PX) * zoom);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = AREA_SIGN_SHADOW_COLOR;
+      ctx.fillRect(x + border * 2, y + border * 2, w, h);
+      ctx.fillStyle = AREA_SIGN_BORDER_COLOR;
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = color;
+      ctx.fillRect(x + border, y + border, w - border * 2, h - border * 2);
+      ctx.fillStyle = AREA_SIGN_TEXT_COLOR;
+      ctx.fillText(anchor.label, cx, y + h / 2 + border / 2);
+      continue;
+    }
+    ctx.font = `bold ${fontSize}px 'FS Pixel Sans'`;
+    const cy = offsetY + anchor.y * s;
     // Pixel-art drop shadow (1px right + down, no blur).
     ctx.globalAlpha = AREA_LABEL_SHADOW_ALPHA;
     ctx.fillStyle = AREA_LABEL_SHADOW_COLOR;
-    ctx.fillText(label, cx + 1, cy + 1);
-
+    ctx.fillText(anchor.label, cx + 1, cy + 1);
     // Main label — area's own color, falling back to white if missing.
     ctx.globalAlpha = AREA_LABEL_ALPHA;
-    ctx.fillStyle = colorMap.get(label) ?? AREA_LABEL_FALLBACK_COLOR;
-    ctx.fillText(label, cx, cy);
+    ctx.fillStyle = color;
+    ctx.fillText(anchor.label, cx, cy);
   }
   ctx.restore();
 }

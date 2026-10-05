@@ -153,6 +153,14 @@ export const AREA_LABEL_FALLBACK_COLOR = '#ffffff';
 export const AREA_LABEL_SHADOW_COLOR = '#000000';
 /** Drop-shadow alpha behind area labels. */
 export const AREA_LABEL_SHADOW_ALPHA = 0.6;
+/** City hex signs (areas with a `kind`): pill font size, padding and gap below the island side, in sprite px. */
+export const AREA_SIGN_FONT_SIZE_PX = 7;
+export const AREA_SIGN_PAD_X_PX = 4;
+export const AREA_SIGN_PAD_Y_PX = 2;
+export const AREA_SIGN_GAP_PX = 2;
+export const AREA_SIGN_TEXT_COLOR = '#ffffff';
+export const AREA_SIGN_BORDER_COLOR = '#0a0a14';
+export const AREA_SIGN_SHADOW_COLOR = 'rgba(10, 10, 20, 0.55)';
 
 // ── VisualColorPicker (HSV wheel + brightness for carpets) ───
 export const VISUAL_COLOR_PICKER_SV_SIZE_PX = 180;
