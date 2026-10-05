@@ -100,6 +100,8 @@ interface ExtensionMessageState {
    *  pending install from a failed one, per provider — A's status is never a verdict on B's install. */
   hooksStatusSeq: Record<string, number>;
   hooksInfoShown: boolean;
+  /** City guide dismissed once (persisted); until then it opens on its own over a city layout. */
+  cityGuideShown: boolean;
   /** First-run consent ask (hooksConsentRequest). Non-null while the server waits on an answer; carries the provider
    *  and the server's exact disclosure copy, so the consent step renders the terms being approved with no client
    *  duplicate to drift. Cleared on answer/dismissal, and by a matching provider's hooksStatus installed=true. */
@@ -146,6 +148,8 @@ export function useExtensionMessages(
   const [hooksInstalled, setHooksInstalled] = useState<Record<string, boolean>>({});
   const [hooksStatusSeq, setHooksStatusSeq] = useState<Record<string, number>>({});
   const [hooksInfoShown, setHooksInfoShown] = useState(true);
+  // Defaults to shown so the guide never flashes before settingsLoaded arrives.
+  const [cityGuideShown, setCityGuideShown] = useState(true);
   // FIFO of pending consent asks, at most one per provider (a re-ask replaces that provider's entry in place). The
   // HEAD is what the Intro renders; answering, dismissing, or mooting it advances to the next provider's ask rather
   // than dropping it — the server sends one request per provider on the same handshake.
@@ -662,6 +666,9 @@ export function useExtensionMessages(
         if (typeof msg.hooksInfoShown === 'boolean') {
           setHooksInfoShown(msg.hooksInfoShown as boolean);
         }
+        if (typeof msg.cityGuideShown === 'boolean') {
+          setCityGuideShown(msg.cityGuideShown as boolean);
+        }
         if (typeof msg.showAreas === 'boolean') {
           setShowAreas(msg.showAreas as boolean);
         }
@@ -783,6 +790,7 @@ export function useExtensionMessages(
     hooksStatusSeq,
     setHooksEnabled,
     hooksInfoShown,
+    cityGuideShown,
     consentRequest,
     // Called when a tour ends (answer + Let's Go, the X, Escape) with the providerId that tour was ABOUT, removing
     // that entry so the next provider's ask becomes the head. Keyed by id, not a blind shift: an answered ask's own

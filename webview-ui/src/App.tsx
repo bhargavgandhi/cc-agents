@@ -3,11 +3,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toMajorMinor } from './changelogData.js';
 import { BottomToolbar } from './components/BottomToolbar.js';
 import { ChangelogModal } from './components/ChangelogModal.js';
+import { CityGuide } from './components/CityGuide.js';
 import { ConnectionIndicator } from './components/ConnectionIndicator.js';
 import { DebugView } from './components/DebugView.js';
 import { EditActionBar } from './components/EditActionBar.js';
 import { IntroBubble } from './components/IntroBubble.js';
-import { MigrationNotice } from './components/MigrationNotice.js';
 import { SettingsModal } from './components/SettingsModal.js';
 import { Tooltip } from './components/Tooltip.js';
 import { Modal } from './components/ui/Modal.js';
@@ -90,6 +90,7 @@ function App() {
     hooksInstalled,
     hooksStatusSeq,
     hooksInfoShown,
+    cityGuideShown,
     consentRequest,
     dismissConsentRequest,
     areaMappings,
@@ -98,9 +99,11 @@ function App() {
     setShowAreas,
   } = useExtensionMessages(getOfficeState, editor.setLastSavedLayout, isEditDirty);
 
-  // Show migration notice once layout reset is detected
-  const [migrationNoticeDismissed, setMigrationNoticeDismissed] = useState(false);
-  const showMigrationNotice = layoutWasReset && !migrationNoticeDismissed;
+  // City guide: opens on its own over a city layout until dismissed once (and
+  // always after a layout reset, which needs the backup note); Settings reopens it.
+  const [cityGuideDismissed, setCityGuideDismissed] = useState(false);
+  const [cityGuideRequested, setCityGuideRequested] = useState(false);
+  const isCityLayout = layoutReady && Boolean(getOfficeState().getLayout().backdrop);
 
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -156,6 +159,12 @@ function App() {
     onChoice: handleConsentChoice,
     onClose: handleIntroClose,
   } = useIntroTour({ consentRequest, hooksInstalled, hooksStatusSeq, dismissConsentRequest });
+
+  // Never stacked on the Intro: the first-run tour finishes first.
+  const showCityGuide =
+    !intro &&
+    (cityGuideRequested ||
+      (!cityGuideDismissed && (layoutWasReset || (isCityLayout && !cityGuideShown))));
 
   // The Settings surface renders one provider today; its checkbox binds to
   // the Claude row of the per-provider install-state map.
@@ -574,10 +583,18 @@ function App() {
         showAreasAvailable={areasAvailable}
         onExportLayout={handleExportLayout}
         onImportLayout={handleImportLayout}
+        onOpenCityGuide={isCityLayout ? () => setCityGuideRequested(true) : undefined}
       />
 
-      {showMigrationNotice && (
-        <MigrationNotice onDismiss={() => setMigrationNoticeDismissed(true)} />
+      {showCityGuide && (
+        <CityGuide
+          showBackupNote={layoutWasReset}
+          onDismiss={() => {
+            setCityGuideDismissed(true);
+            setCityGuideRequested(false);
+            transport.send({ type: 'setCityGuideShown' });
+          }}
+        />
       )}
 
       {intro && (
@@ -596,7 +613,7 @@ function App() {
             isSettingsOpen ||
             isChangelogOpen ||
             isHooksInfoOpen ||
-            showMigrationNotice ||
+            showCityGuide ||
             editor.isEditMode
           }
         />

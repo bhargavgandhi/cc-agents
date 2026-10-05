@@ -11,6 +11,8 @@ export interface AdapterSettings {
   ghostHeadlessAgents: boolean;
   watchAllSessions: boolean;
   hooksInfoShown: boolean;
+  /** The city guide was dismissed once; it stops auto-opening (Settings can still open it). */
+  cityGuideShown: boolean;
   showAreas: boolean;
   areaMappings: Record<string, string[]>;
 }
@@ -26,6 +28,7 @@ export const ADAPTER_SETTING_KEYS = [
   'ghostHeadlessAgents',
   'watchAllSessions',
   'hooksInfoShown',
+  'cityGuideShown',
   'showAreas',
   'areaMappings',
 ] as const;
@@ -62,6 +65,7 @@ const DEFAULT_ADAPTER_SETTINGS: AdapterSettings = {
   ghostHeadlessAgents: false,
   watchAllSessions: false,
   hooksInfoShown: false,
+  cityGuideShown: false,
   showAreas: false,
   areaMappings: {},
 };
@@ -142,6 +146,10 @@ function parseAdapterSettings(raw: unknown): AdapterSettings {
       typeof obj.hooksInfoShown === 'boolean'
         ? obj.hooksInfoShown
         : DEFAULT_ADAPTER_SETTINGS.hooksInfoShown,
+    cityGuideShown:
+      typeof obj.cityGuideShown === 'boolean'
+        ? obj.cityGuideShown
+        : DEFAULT_ADAPTER_SETTINGS.cityGuideShown,
     showAreas:
       typeof obj.showAreas === 'boolean' ? obj.showAreas : DEFAULT_ADAPTER_SETTINGS.showAreas,
     areaMappings: parseAreaMappings(obj.areaMappings),

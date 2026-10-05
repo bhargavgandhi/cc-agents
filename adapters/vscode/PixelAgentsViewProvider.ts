@@ -64,6 +64,7 @@ import {
   CONFIG_KEY_AUTO_SHOW_PANEL,
   CONFIG_KEY_AUTO_SPAWN_AGENT,
   GLOBAL_KEY_ALWAYS_SHOW_LABELS,
+  GLOBAL_KEY_CITY_GUIDE_SHOWN,
   GLOBAL_KEY_GHOST_HEADLESS_AGENTS,
   GLOBAL_KEY_HOOKS_INFO_SHOWN,
   GLOBAL_KEY_LAST_SEEN_VERSION,
@@ -498,6 +499,8 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
         }
       } else if (message.type === 'setHooksInfoShown') {
         this.adapter.setSetting(GLOBAL_KEY_HOOKS_INFO_SHOWN, true);
+      } else if (message.type === 'setCityGuideShown') {
+        this.adapter.setSetting(GLOBAL_KEY_CITY_GUIDE_SHOWN, true);
       } else if (message.type === 'setShowAreas') {
         const enabled = message.enabled as boolean;
         this.adapter.setSetting(GLOBAL_KEY_SHOW_AREAS, enabled);
@@ -588,6 +591,7 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
         // per-provider list — its sole webview reader is the hooks tooltip.
         const hooksEnabled = getHooksEnabled(claudeProvider.id);
         const hooksInfoShown = this.adapter.getSetting<boolean>(GLOBAL_KEY_HOOKS_INFO_SHOWN, false);
+        const cityGuideShown = this.adapter.getSetting<boolean>(GLOBAL_KEY_CITY_GUIDE_SHOWN, false);
         const showAreas = this.adapter.getSetting<boolean>(GLOBAL_KEY_SHOW_AREAS, false);
         const config = readConfig();
         this.webview?.postMessage({
@@ -600,6 +604,7 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
           ghostHeadlessAgents,
           hooksEnabled,
           hooksInfoShown,
+          cityGuideShown,
           externalAssetDirectories: config.externalAssetDirectories,
           showAreas,
         });

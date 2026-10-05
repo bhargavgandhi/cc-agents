@@ -135,6 +135,7 @@ components:
         - $ref: '#/components/schemas/SetHooksEnabled'
         - $ref: '#/components/schemas/HooksConsentResponse'
         - $ref: '#/components/schemas/SetHooksInfoShown'
+        - $ref: '#/components/schemas/SetCityGuideShown'
         - $ref: '#/components/schemas/SetWatchAllSessions'
         - $ref: '#/components/schemas/ExportLayout'
         - $ref: '#/components/schemas/ImportLayout'
@@ -642,6 +643,7 @@ components:
         - ghostHeadlessAgents
         - hooksEnabled
         - hooksInfoShown
+        - cityGuideShown
         - externalAssetDirectories
         - showAreas
       properties:
@@ -663,6 +665,9 @@ components:
           type: boolean
         hooksInfoShown:
           type: boolean
+        cityGuideShown:
+          type: boolean
+          description: Whether the Hudson Hex City guide has been dismissed once (it auto-opens until then).
         externalAssetDirectories:
           type: array
           items:
@@ -965,6 +970,15 @@ components:
       properties:
         type:
           const: setHooksInfoShown
+
+    SetCityGuideShown:
+      description: The user dismissed the city guide; stop auto-opening it.
+      type: object
+      additionalProperties: false
+      required: [type]
+      properties:
+        type:
+          const: setCityGuideShown
 
     SetWatchAllSessions:
       type: object

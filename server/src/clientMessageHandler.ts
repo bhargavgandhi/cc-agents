@@ -69,6 +69,7 @@ const KEY_ALWAYS_SHOW_LABELS = 'pixel-agents.alwaysShowLabels';
 const KEY_GHOST_HEADLESS_AGENTS = 'pixel-agents.ghostHeadlessAgents';
 const KEY_WATCH_ALL_SESSIONS = 'pixel-agents.watchAllSessions';
 const KEY_HOOKS_INFO_SHOWN = 'pixel-agents.hooksInfoShown';
+const KEY_CITY_GUIDE_SHOWN = 'pixel-agents.cityGuideShown';
 const KEY_SHOW_AREAS = 'pixel-agents.showAreas';
 
 /**
@@ -227,6 +228,10 @@ export function handleClientMessage(
 
     case 'setHooksInfoShown':
       adapter?.setSetting(KEY_HOOKS_INFO_SHOWN, true);
+      break;
+
+    case 'setCityGuideShown':
+      adapter?.setSetting(KEY_CITY_GUIDE_SHOWN, true);
       break;
 
     case 'addExternalAssetDirectory': {
@@ -420,6 +425,7 @@ function handleWebviewReady(send: WsSend, ctx: ClientMessageContext): void {
     ghostHeadlessAgents: adapter?.getSetting(KEY_GHOST_HEADLESS_AGENTS, false) ?? false,
     hooksEnabled,
     hooksInfoShown: adapter?.getSetting(KEY_HOOKS_INFO_SHOWN, false) ?? false,
+    cityGuideShown: adapter?.getSetting(KEY_CITY_GUIDE_SHOWN, false) ?? false,
     externalAssetDirectories: cfg.externalAssetDirectories,
     showAreas,
   });

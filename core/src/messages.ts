@@ -54,6 +54,7 @@ export type ClientMessage =
   | SetHooksEnabled
   | HooksConsentResponse
   | SetHooksInfoShown
+  | SetCityGuideShown
   | SetWatchAllSessions
   | ExportLayout
   | ImportLayout
@@ -273,6 +274,7 @@ export interface SettingsLoaded {
   ghostHeadlessAgents: boolean;
   hooksEnabled: boolean;
   hooksInfoShown: boolean;
+  cityGuideShown: boolean;
   externalAssetDirectories: string[];
   showAreas: boolean;
 }
@@ -387,6 +389,10 @@ export type HooksConsentChoice = 'install' | 'notNow' | 'never';
 
 export interface SetHooksInfoShown {
   type: 'setHooksInfoShown';
+}
+
+export interface SetCityGuideShown {
+  type: 'setCityGuideShown';
 }
 
 export interface SetWatchAllSessions {

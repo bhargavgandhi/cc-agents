@@ -373,6 +373,18 @@ describe('clientMessageHandler: areas + carpet wire ordering', () => {
       ).toEqual(saved);
     });
 
+    it('setCityGuideShown persists, and settingsLoaded reports it on the next connect', () => {
+      handleClientMessage({ type: 'webviewReady' }, (m) => sent.push(m), ctx);
+      expect(sent.find((m) => m.type === 'settingsLoaded')).toMatchObject({
+        cityGuideShown: false,
+      });
+
+      handleClientMessage({ type: 'setCityGuideShown' }, (m) => sent.push(m), ctx);
+      sent.length = 0;
+      handleClientMessage({ type: 'webviewReady' }, (m) => sent.push(m), ctx);
+      expect(sent.find((m) => m.type === 'settingsLoaded')).toMatchObject({ cityGuideShown: true });
+    });
+
     it('replays agent activity after layoutLoaded so it lands on real characters', () => {
       // Two things at once, both invisible to the helper's own unit tests:
       // that handleWebviewReady calls the replay at all, and that it runs AFTER

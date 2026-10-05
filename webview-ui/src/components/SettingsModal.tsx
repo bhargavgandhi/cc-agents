@@ -36,6 +36,8 @@ interface SettingsModalProps {
   onExportLayout: () => void;
   /** Browser-native layout import from a chosen file (standalone only). */
   onImportLayout: (file: File) => void;
+  /** Reopen the city guide; omitted when the layout is not a city. */
+  onOpenCityGuide?: () => void;
 }
 
 export function SettingsModal({
@@ -57,6 +59,7 @@ export function SettingsModal({
   showAreasAvailable,
   onExportLayout,
   onImportLayout,
+  onOpenCityGuide,
 }: SettingsModalProps) {
   const [soundLocal, setSoundLocal] = useState(isSoundEnabled);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,6 +67,16 @@ export function SettingsModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Settings">
+      {onOpenCityGuide && (
+        <MenuItem
+          onClick={() => {
+            onOpenCityGuide();
+            onClose();
+          }}
+        >
+          City Guide
+        </MenuItem>
+      )}
       {/* Open Sessions Folder opens an OS file manager — impossible in the browser. */}
       {!isBrowserRuntime && (
         <MenuItem
