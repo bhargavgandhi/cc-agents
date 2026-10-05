@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Hudson skyline backdrop (1280×200) for the city theme: dusk sky with stars,
+// Hudson skyline backdrop (1440×200 = the city map's 90 columns × 16 px) for the city theme: dusk sky with stars,
 // a hazy far layer, a low Jersey City skyline (left) and a taller Manhattan
 // skyline (right) with a tapered supertall and a stepped spire tower, and
 // window light reflected on the waterline. Generic towers only — no real
@@ -8,7 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const { Sprite, rng } = require('./lib.cjs');
 
-const W = 1280;
+const W = 1440;
+const EDGE = 6;
 const H = 200;
 const s = new Sprite(W, H);
 const r = rng(42);
@@ -22,18 +23,20 @@ sky.forEach((c, i) => {
 });
 // Stars in the upper sky.
 for (let i = 0; i < 140; i++) {
-  const x = Math.floor(r() * W);
+  const x = EDGE + Math.floor(r() * (W - 2 * EDGE));
   const y = Math.floor(r() * 70);
   s.px(x, y, r() > 0.8 ? '#ffffff' : '#c9c3ff');
 }
 // Thin cloud streaks.
 for (let i = 0; i < 6; i++) {
-  const x = Math.floor(r() * (W - 200));
+  const x = EDGE + Math.floor(r() * (W - 200 - 2 * EDGE));
   const y = 80 + Math.floor(r() * 50);
   s.hline(x, y, 80 + Math.floor(r() * 120), '#f4a8806b').hline(x + 20, y + 1, 60, '#f4a88040');
 }
 
 function tower(x, top, w, body, lit, opts = {}) {
+  w = Math.min(w, W - EDGE - x); // never into the right edge band
+  if (w <= 0) return;
   s.rect(x, top, w, H - top, body);
   if (opts.edge) s.vline(x + w - 1, top, H - top, opts.edge);
   for (let y = top + 3; y < H - 4; y += 4)
@@ -42,19 +45,19 @@ function tower(x, top, w, body, lit, opts = {}) {
 }
 
 // Far layer: hazy, low-contrast, sparse lights, across the whole width.
-for (let x = 0; x < W; ) {
+for (let x = EDGE; x < W - EDGE; ) {
   const w = 18 + Math.floor(r() * 26);
   tower(x, 70 + Math.floor(r() * 60), w, '#4a3a6a', '#8c7aa8', { dark: 0.8 });
   x += w + 1;
 }
 // Jersey City (left, lower).
-for (let x = 0; x < 470; ) {
+for (let x = EDGE; x < Math.round(W * 0.37); ) {
   const w = 14 + Math.floor(r() * 16);
   tower(x, 112 + Math.floor(r() * 50), w, '#2a2442', '#f5d48a', { edge: '#36304f', beacon: r() > 0.85 });
   x += w + 2;
 }
 // Hudson gap, then Manhattan (right, taller).
-for (let x = 560; x < W; ) {
+for (let x = Math.round(W * 0.44); x < W - EDGE; ) {
   const w = 16 + Math.floor(r() * 16);
   tower(x, 52 + Math.floor(r() * 80), w, '#1d1934', '#ffe2a0', { edge: '#2a2546', beacon: r() > 0.8 });
   x += w + 2;
@@ -72,7 +75,7 @@ for (let y = 52; y < H - 4; y += 4) for (let i = 742; i < 760; i += 3) if (r() >
 s.px(750, 6, '#ff4d4d');
 // Waterline glow + reflections in the bottom rows.
 s.rect(0, H - 6, W, 6, '#2f4176');
-for (let x = 0; x < W; x += 2) if (r() > 0.55) s.rect(x, H - 6 + Math.floor(r() * 5), 1 + Math.floor(r() * 3), 1, r() > 0.5 ? '#d9b06a' : '#6f86c4');
+for (let x = EDGE; x < W - EDGE; x += 2) if (r() > 0.55) s.rect(x, H - 6 + Math.floor(r() * 5), 1 + Math.floor(r() * 3), 1, r() > 0.5 ? '#d9b06a' : '#6f86c4');
 
 const out = path.join(__dirname, '../../webview-ui/src/assets/backdrops/hudson.png');
 fs.mkdirSync(path.dirname(out), { recursive: true });

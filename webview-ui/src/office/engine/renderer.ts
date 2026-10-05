@@ -16,7 +16,6 @@ import {
   AREA_SIGN_PAD_Y_PX,
   AREA_SIGN_SHADOW_COLOR,
   AREA_SIGN_TEXT_COLOR,
-  BACKDROP_PARALLAX,
   BACKDROP_SKY_COLOR,
   BACKDROP_WATER_COLOR,
   BUBBLE_FADE_DURATION_SEC,
@@ -930,7 +929,13 @@ export interface BackdropRenderState {
   areaKinds: Array<AreaKind | null>;
 }
 
-/** Water fill + skyline image, drawn before the tile grid. */
+/**
+ * Water fill + skyline image, drawn before the tile grid. The image is
+ * anchored to the map (it pans and zooms with the islands), centred on the
+ * map's width; its first and last pixel columns, which hold only the sky
+ * gradient and waterline, are stretched out to the canvas edges so the sky
+ * continues seamlessly past the image at any pan.
+ */
 function renderBackdrop(
   ctx: CanvasRenderingContext2D,
   canvasWidth: number,
@@ -941,22 +946,24 @@ function renderBackdrop(
   zoom: number,
   cols: number,
 ): void {
-  const horizonY = offsetY + backdrop.horizonRow * TILE_SIZE * zoom;
+  const horizonY = Math.round(offsetY + backdrop.horizonRow * TILE_SIZE * zoom);
   ctx.fillStyle = BACKDROP_SKY_COLOR;
   ctx.fillRect(0, 0, canvasWidth, Math.max(0, horizonY));
   ctx.fillStyle = BACKDROP_WATER_COLOR;
   ctx.fillRect(0, Math.max(0, horizonY), canvasWidth, canvasHeight);
   const img = backdrop.image;
-  if (!img) return;
+  if (!img || img.naturalWidth === 0) return;
   const w = img.naturalWidth * zoom;
   const h = img.naturalHeight * zoom;
-  const mapCenterX = offsetX + (cols * TILE_SIZE * zoom) / 2;
-  const x = Math.round(
-    canvasWidth / 2 + (mapCenterX - canvasWidth / 2) * BACKDROP_PARALLAX - w / 2,
-  );
+  const x = Math.round(offsetX + (cols * TILE_SIZE * zoom - w) / 2);
+  const y = horizonY - h;
+  const ih = img.naturalHeight;
   const prevSmoothing = ctx.imageSmoothingEnabled;
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(img, x, Math.round(horizonY - h), w, h);
+  if (x > 0) ctx.drawImage(img, 0, 0, 1, ih, 0, y, x, h);
+  if (x + w < canvasWidth)
+    ctx.drawImage(img, img.naturalWidth - 1, 0, 1, ih, x + w, y, canvasWidth - (x + w), h);
+  ctx.drawImage(img, x, y, w, h);
   ctx.imageSmoothingEnabled = prevSmoothing;
 }
 

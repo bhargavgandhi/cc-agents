@@ -346,6 +346,4 @@ export const ISLAND_SHADOW_PX = 4;
 /** Water fill behind a layout that names a backdrop. */
 export const BACKDROP_WATER_COLOR = '#2f4176';
 /** Sky fill above the backdrop image. */
-export const BACKDROP_SKY_COLOR = '#232046';
-/** Horizontal parallax factor of the skyline (0 = fixed to screen, 1 = fixed to map). */
-export const BACKDROP_PARALLAX = 0.3;
+export const BACKDROP_SKY_COLOR = '#1b1838';
