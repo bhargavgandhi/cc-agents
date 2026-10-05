@@ -4,9 +4,14 @@ import { test } from 'vitest';
 
 import { AREA_DEFAULT_COLORS } from '../src/constants.js';
 import type { CityNav } from '../src/office/engine/characters.js';
-import { createCharacter, updateCharacter } from '../src/office/engine/characters.js';
+import {
+  createCharacter,
+  getCharacterSprite,
+  updateCharacter,
+} from '../src/office/engine/characters.js';
 import { buildAreaKindGrid } from '../src/office/engine/cityRules.js';
-import type { OfficeLayout, TileType as TileTypeVal } from '../src/office/types.js';
+import type { CharacterSprites } from '../src/office/sprites/spriteData.js';
+import type { OfficeLayout, SpriteData, TileType as TileTypeVal } from '../src/office/types.js';
 import { CharacterState, TileType } from '../src/office/types.js';
 
 const AREA_COLOR = AREA_DEFAULT_COLORS[0];
@@ -88,4 +93,26 @@ test('an idle character heads for a leisure tile when the city nav offers one', 
   }
   assert.equal(ch.state, CharacterState.WALK);
   assert.deepEqual(ch.path[ch.path.length - 1], { col: 3, row: 0 });
+});
+
+test('riders sit still: a walker on a bike or boat uses the seated frame', () => {
+  const tag = (name: string): SpriteData => [[name]];
+  const four = (k: string) => [0, 1, 2, 3].map((i) => tag(`${k}${i}`));
+  const byDir = <T>(make: () => T) => ({ 0: make(), 1: make(), 2: make(), 3: make() });
+  const sprites = {
+    walk: byDir(() => four('walk')),
+    typing: byDir(() => [tag('seat0'), tag('seat1')]),
+    reading: byDir(() => [tag('read0'), tag('read1')]),
+  } as unknown as CharacterSprites;
+  const ch = walker(1, []);
+  ch.state = CharacterState.WALK;
+  ch.frame = 2;
+  assert.equal(getCharacterSprite(ch, sprites)[0][0], 'walk2');
+  for (const mode of ['bike', 'boat'] as const) {
+    ch.travelMode = mode;
+    for (const frame of [0, 1, 2, 3]) {
+      ch.frame = frame;
+      assert.equal(getCharacterSprite(ch, sprites)[0][0], 'seat0');
+    }
+  }
 });

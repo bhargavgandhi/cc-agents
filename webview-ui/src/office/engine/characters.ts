@@ -344,6 +344,8 @@ export function getCharacterSprite(ch: Character, sprites: CharacterSprites): Sp
       }
       return sprites.typing[ch.dir][ch.frame % 2];
     case CharacterState.WALK:
+      // Riding a bike or boat: seated and still, the vehicle carries them.
+      if (ch.travelMode === 'bike' || ch.travelMode === 'boat') return sprites.typing[ch.dir][0];
       return sprites.walk[ch.dir][ch.frame % 4];
     case CharacterState.IDLE:
       return sprites.walk[ch.dir][1];

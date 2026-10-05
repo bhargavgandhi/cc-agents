@@ -462,9 +462,10 @@ export function renderScene(
       ch.travelMode && ch.travelMode !== 'walk' ? getTravelSprite(ch.travelMode, ch.dir) : null;
     const travelCached = travel ? getCachedSprite(travel.sprite, zoom) : null;
     const travelX = travelCached ? Math.round(offsetX + ch.x * zoom - travelCached.width / 2) : 0;
-    const travelY = travelCached
-      ? Math.round(offsetY + ch.y * zoom - travelCached.height + 2 * zoom)
-      : 0;
+    const travelY =
+      travel && travelCached
+        ? Math.round(offsetY + ch.y * zoom - travelCached.height + travel.drop * zoom)
+        : 0;
     const travelMirrored = travel?.mirrored ?? false;
 
     drawables.push({

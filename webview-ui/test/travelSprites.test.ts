@@ -33,3 +33,11 @@ test('every row of every view has the same width', () => {
       assert.equal(widths.size, 1, `${mode} dir ${dir} has ragged rows`);
     }
 });
+
+test('the boat is wider than a character and deep enough to hide a seated rider', () => {
+  for (const dir of [Direction.DOWN, Direction.RIGHT, Direction.UP]) {
+    const { sprite } = getTravelSprite('boat', dir);
+    assert.ok(sprite[0].length >= 24, `boat dir ${dir} is only ${sprite[0].length}px wide`);
+    assert.ok(sprite.length >= 12, `boat dir ${dir} is only ${sprite.length}px tall`);
+  }
+});
