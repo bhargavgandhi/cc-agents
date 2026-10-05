@@ -98,7 +98,7 @@ declare global {
 /**
  * Install e2e test observables on window.__pixelAgentsTestHooks. Mostly
  * read-only / append-only; the one action (selectAgent) only sets selection
- * state and changes no production logic. Called once at module-load from
+ * and camera-follow state and changes no production logic. Called once at module-load from
  * App.tsx with the singleton officeStateRef.
  *
  * - getCharacters(): point-in-time snapshot of every character's matrix, team, and bubble state.
@@ -108,8 +108,8 @@ declare global {
  *   let a regression slip past a snapshot-based check.
  * - playedSounds: populated separately by notificationSound.ts (same namespace,
  *   different owner).
- * - selectAgent(id): sets officeState.selectedAgentId directly, the same state
- *   a canvas click produces. Lets e2e reveal an agent's "Close agent" (×)
+ * - selectAgent(id): sets officeState.selectedAgentId and cameraFollowId
+ *   directly, the same state a canvas click produces. Lets e2e reveal an agent's "Close agent" (×)
  *   button deterministically instead of pixel-hunting the sprite on the canvas
  *   (see closeAgentFromOverlay in e2e/helpers/office.ts). ToolOverlay reads
  *   selectedAgentId every rAF, so the × button surfaces on the next frame.
@@ -146,7 +146,11 @@ export function installTestHooks(officeStateRef: { current: OfficeState | null }
 
   hooks.selectAgent = (id) => {
     const os = officeStateRef.current;
-    if (os) os.selectedAgentId = id;
+    if (!os) return;
+    // Mirror a canvas click: select AND follow, so on a map larger than the
+    // viewport (the city) the camera brings the × button on screen.
+    os.selectedAgentId = id;
+    os.cameraFollowId = id;
   };
 
   // Point-in-time snapshot of every live pet. Pets render only on the canvas
