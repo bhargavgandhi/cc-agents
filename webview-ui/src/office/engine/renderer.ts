@@ -67,7 +67,7 @@ import {
   BUBBLE_WAITING_SPRITE,
   getCharacterSprites,
 } from '../sprites/spriteData.js';
-import { BIKE_SPRITE, BOAT_SPRITE } from '../sprites/travelSprites.js';
+import { getTravelSprite } from '../sprites/travelSprites.js';
 import type {
   AreaDefinition,
   AreaKind,
@@ -458,13 +458,14 @@ export function renderScene(
       });
     }
 
-    const travelSprite =
-      ch.travelMode === 'bike' ? BIKE_SPRITE : ch.travelMode === 'boat' ? BOAT_SPRITE : null;
-    const travelCached = travelSprite ? getCachedSprite(travelSprite, zoom) : null;
+    const travel =
+      ch.travelMode && ch.travelMode !== 'walk' ? getTravelSprite(ch.travelMode, ch.dir) : null;
+    const travelCached = travel ? getCachedSprite(travel.sprite, zoom) : null;
     const travelX = travelCached ? Math.round(offsetX + ch.x * zoom - travelCached.width / 2) : 0;
     const travelY = travelCached
       ? Math.round(offsetY + ch.y * zoom - travelCached.height + 2 * zoom)
       : 0;
+    const travelMirrored = travel?.mirrored ?? false;
 
     drawables.push({
       zY: charZY,
@@ -474,7 +475,17 @@ export function renderScene(
           c.globalAlpha = alpha;
         }
         c.drawImage(cached, drawX, drawY);
-        if (travelCached) c.drawImage(travelCached, travelX, travelY);
+        if (travelCached) {
+          if (travelMirrored) {
+            c.save();
+            c.translate(travelX + travelCached.width, travelY);
+            c.scale(-1, 1);
+            c.drawImage(travelCached, 0, 0);
+            c.restore();
+          } else {
+            c.drawImage(travelCached, travelX, travelY);
+          }
+        }
         if (alpha !== 1) c.restore();
       },
     });
