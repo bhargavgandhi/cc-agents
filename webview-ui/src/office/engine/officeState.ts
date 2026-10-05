@@ -819,6 +819,18 @@ export class OfficeState {
 
   /** Rebuild furniture instances with auto-state applied (active agents turn electronics ON) */
   private rebuildFurnitureInstances(): void {
+    const animFrame = Math.floor(this.furnitureAnimTimer / FURNITURE_ANIM_INTERVAL_SEC);
+    // Ambient animation: a placed type that belongs to an animation group
+    // (arcade screens, café steam) cycles its frames on its own. Electronics are
+    // placed by their OFF type, which has no frames, so they stay still until
+    // the auto-on pass below swaps them to their animated ON frames.
+    const withAmbient = (item: PlacedFurniture): PlacedFurniture => {
+      const frames = getAnimationFrames(item.type);
+      return frames && frames.length > 1
+        ? { ...item, type: frames[animFrame % frames.length] }
+        : item;
+    };
+
     // Collect tiles where active agents face desks
     const autoOnTiles = new Set<string>();
     for (const ch of this.characters.values()) {
@@ -852,12 +864,11 @@ export class OfficeState {
     }
 
     if (autoOnTiles.size === 0) {
-      this.furniture = layoutToFurnitureInstances(this.layout.furniture);
+      this.furniture = layoutToFurnitureInstances(this.layout.furniture.map(withAmbient));
       return;
     }
 
     // Build modified furniture list with auto-state and animation applied
-    const animFrame = Math.floor(this.furnitureAnimTimer / FURNITURE_ANIM_INTERVAL_SEC);
     const modifiedFurniture: PlacedFurniture[] = this.layout.furniture.map((item) => {
       const entry = getCatalogEntry(item.type);
       if (!entry) return item;
@@ -875,11 +886,11 @@ export class OfficeState {
               }
               return { ...item, type: onType };
             }
-            return item;
+            return withAmbient(item);
           }
         }
       }
-      return item;
+      return withAmbient(item);
     });
 
     this.furniture = layoutToFurnitureInstances(modifiedFurniture);
