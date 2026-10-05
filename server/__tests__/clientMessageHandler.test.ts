@@ -346,6 +346,33 @@ describe('clientMessageHandler: areas + carpet wire ordering', () => {
       expect(existing.agents).toEqual([1]);
     });
 
+    it('resets an outdated saved layout to the bundled default, backing it up first', () => {
+      const dir = path.join(tempHome, '.pixel-agents');
+      fs.mkdirSync(dir, { recursive: true });
+      const saved = { version: 1, cols: 2, rows: 2, layoutRevision: 1 };
+      fs.writeFileSync(path.join(dir, 'layout.json'), JSON.stringify(saved));
+      const bundled = { version: 1, cols: 9, rows: 9, layoutRevision: 2 };
+      ctx = freshCtx({
+        characters: null,
+        pets: null,
+        floorTiles: null,
+        wallTiles: null,
+        carpetTiles: null,
+        furniture: null,
+        defaultLayout: bundled,
+      });
+
+      handleClientMessage({ type: 'webviewReady' }, (m) => sent.push(m), ctx);
+
+      expect(sent.find((m) => m.type === 'layoutLoaded')).toMatchObject({
+        layout: bundled,
+        wasReset: true,
+      });
+      expect(
+        JSON.parse(fs.readFileSync(path.join(dir, 'layout.backup-rev1.json'), 'utf8')),
+      ).toEqual(saved);
+    });
+
     it('replays agent activity after layoutLoaded so it lands on real characters', () => {
       // Two things at once, both invisible to the helper's own unit tests:
       // that handleWebviewReady calls the replay at all, and that it runs AFTER
