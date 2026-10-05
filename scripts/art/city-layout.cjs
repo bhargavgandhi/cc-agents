@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Generates the importable Hudson Hex City layout (v2, Phase 2 art).
+// Generates the bundled default layout, Hudson Hex City (default-layout-2.json).
 //
 // Five flat-top stepped-hex islands (22×16) on VOID water under the Hudson
 // skyline: two WORK hexes (umbrella tables + stools + laptops = 12 seats) and
@@ -252,7 +252,8 @@ const layout = {
   version: 1,
   cols: COLS,
   rows: ROWS,
-  layoutRevision: 9000,
+  // Bundled default revision: a saved layout below it is backed up and replaced on load.
+  layoutRevision: 2,
   tiles,
   tileColors,
   furniture,
@@ -261,7 +262,6 @@ const layout = {
   areas,
   areaTiles,
 };
-const out = path.join(__dirname, '../../webview-ui/public/assets/layouts/hudson-city-preview.json');
-fs.mkdirSync(path.dirname(out), { recursive: true });
+const out = path.join(__dirname, '../../webview-ui/public/assets/default-layout-2.json');
 fs.writeFileSync(out, JSON.stringify(layout));
 console.log(`wrote ${path.relative(process.cwd(), out)} ${COLS}x${ROWS}, ${furniture.length} items, ${seats.length} seats, ${seen.size} reachable tiles — all checks passed`);

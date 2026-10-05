@@ -266,10 +266,10 @@ test.describe('Carpet', () => {
 
 const DEFAULT_LAYOUT_PATH = path.join(
   __dirname,
-  '../../../../webview-ui/public/assets/default-layout-1.json',
+  '../../../../webview-ui/public/assets/layouts/classic-office.json',
 );
 
-/** A valid furniture type from the bundled default layout (for the surface-placement seed). */
+/** A valid furniture type from the classic office layout (for the surface-placement seed). */
 function firstDefaultFurnitureType(): string {
   const parsed = JSON.parse(fs.readFileSync(DEFAULT_LAYOUT_PATH, 'utf8')) as {
     furniture?: Array<{ type: string }>;
