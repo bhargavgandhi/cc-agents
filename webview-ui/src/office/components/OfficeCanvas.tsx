@@ -9,6 +9,7 @@ import {
   ZOOM_SCROLL_THRESHOLD,
 } from '../../constants.js';
 import { unlockAudio } from '../../notificationSound.js';
+import { prefersReducedMotion } from '../../reducedMotion.js';
 import { transport } from '../../transport/index.js';
 import { getBackdropImage } from '../backdrops.js';
 import { getColorizedSprite } from '../colorize.js';
@@ -252,8 +253,9 @@ export function OfficeCanvas({
           const dx = targetX - panRef.current.x;
           const dy = targetY - panRef.current.y;
           if (
-            Math.abs(dx) < CAMERA_FOLLOW_SNAP_THRESHOLD &&
-            Math.abs(dy) < CAMERA_FOLLOW_SNAP_THRESHOLD
+            prefersReducedMotion() ||
+            (Math.abs(dx) < CAMERA_FOLLOW_SNAP_THRESHOLD &&
+              Math.abs(dy) < CAMERA_FOLLOW_SNAP_THRESHOLD)
           ) {
             panRef.current = { x: targetX, y: targetY };
           } else {

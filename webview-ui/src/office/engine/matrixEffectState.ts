@@ -9,6 +9,7 @@
  */
 
 import { MATRIX_SPRITE_COLS } from '../../constants.js';
+import { prefersReducedMotion } from '../../reducedMotion.js';
 import type { Character } from '../types.js';
 import { MATRIX_EFFECT_DURATION } from '../types.js';
 
@@ -42,7 +43,9 @@ export type MatrixEffectTick = 'none' | 'running' | 'spawned' | 'despawned';
 export function advanceMatrixEffect(ch: Character, dt: number): MatrixEffectTick {
   if (!ch.matrixEffect) return 'none';
   ch.matrixEffectTimer += dt;
-  if (ch.matrixEffectTimer < MATRIX_EFFECT_DURATION) return 'running';
+  // Reduced motion: no digital rain — the effect completes on its first tick.
+  const duration = prefersReducedMotion() ? 0 : MATRIX_EFFECT_DURATION;
+  if (ch.matrixEffectTimer < duration) return 'running';
   if (ch.matrixEffect === 'despawn') return 'despawned';
   ch.matrixEffect = null;
   ch.matrixEffectTimer = 0;

@@ -22,11 +22,13 @@ export function MigrationNotice({ onDismiss }: MigrationNoticeProps) {
         </p>
         <p className="text-xl m-0 mb-12">
           Your previous layout was replaced, but not lost: a copy is saved in{' '}
-          <code>~/.pixel-agents/</code> as <code>layout.backup-rev*.json</code>. Bring it back with
+          <span className="text-accent-bright">~/.pixel-agents/</span> as{' '}
+          <span className="text-accent-bright">layout.backup-rev*.json</span>. Bring it back with
           Settings → Import Layout.
         </p>
         <p className="text-xl m-0 mb-20">
-          The original office ships as <code>assets/layouts/classic-office.json</code>.
+          The original office ships as{' '}
+          <span className="text-accent-bright">assets/layouts/classic-office.json</span>.
         </p>
         <Button variant="accent" size="xl" onClick={onDismiss}>
           Got it

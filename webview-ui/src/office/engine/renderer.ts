@@ -11,6 +11,7 @@ import {
   AREA_SIGN_BORDER_COLOR,
   AREA_SIGN_FONT_SIZE_PX,
   AREA_SIGN_GAP_PX,
+  AREA_SIGN_MIN_FONT_SIZE_PX,
   AREA_SIGN_PAD_X_PX,
   AREA_SIGN_PAD_Y_PX,
   AREA_SIGN_SHADOW_COLOR,
@@ -272,7 +273,7 @@ export function renderAreaLabels(
   for (const a of areas) colorMap.set(a.label, a.color);
 
   const fontSize = Math.max(AREA_LABEL_FONT_SIZE_PX * zoom, AREA_LABEL_MIN_FONT_SIZE_PX);
-  const signFontSize = Math.max(AREA_SIGN_FONT_SIZE_PX * zoom, AREA_LABEL_MIN_FONT_SIZE_PX);
+  const signFontSize = Math.max(AREA_SIGN_FONT_SIZE_PX * zoom, AREA_SIGN_MIN_FONT_SIZE_PX);
 
   ctx.save();
   ctx.textAlign = 'center';

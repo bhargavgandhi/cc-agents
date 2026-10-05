@@ -154,7 +154,9 @@ export const AREA_LABEL_SHADOW_COLOR = '#000000';
 /** Drop-shadow alpha behind area labels. */
 export const AREA_LABEL_SHADOW_ALPHA = 0.6;
 /** City hex signs (areas with a `kind`): pill font size, padding and gap below the island side, in sprite px. */
-export const AREA_SIGN_FONT_SIZE_PX = 7;
+export const AREA_SIGN_FONT_SIZE_PX = 8;
+/** Smallest on-screen sign text, so hex names stay readable fully zoomed out. */
+export const AREA_SIGN_MIN_FONT_SIZE_PX = 16;
 export const AREA_SIGN_PAD_X_PX = 4;
 export const AREA_SIGN_PAD_Y_PX = 2;
 export const AREA_SIGN_GAP_PX = 2;

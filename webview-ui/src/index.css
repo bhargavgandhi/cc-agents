@@ -9,22 +9,25 @@
 }
 
 :root {
-  /* Core palette */
-  --color-bg: #1e1e2e;
-  --color-bg-dark: #181828;
-  --color-bg-thumb: #2a2a3a;
-  --color-border: #4a4a6a;
-  --color-accent: #6030ff;
-  --color-accent-bright: #746fff;
+  /* Core palette — Hudson dusk (night-sky violets, sunset accent) */
+  --color-bg: #1f1a3a;
+  --color-bg-dark: #17132d;
+  --color-bg-thumb: #2c2650;
+  --color-border: #5a4a7e;
+  --color-accent: #d9533f;
+  --color-accent-bright: #f19d66;
 
   /* Text */
   --color-text: rgba(255, 255, 255, 0.9);
-  --color-text-muted: rgba(255, 255, 255, 0.5);
+  --color-text-muted: rgba(255, 255, 255, 0.55);
 
   /* Buttons */
-  --color-btn-bg: rgb(53, 52, 69);
-  --color-btn-hover: rgb(78, 75, 104);
-  --color-active-bg: rgb(44, 43, 109);
+  --color-btn-bg: rgb(48, 40, 78);
+  --color-btn-hover: rgb(74, 60, 110);
+  --color-active-bg: rgb(92, 44, 66);
+
+  /* Keyboard focus ring */
+  --color-focus: #ffd27a;
 
   /* Semantic */
   --color-reset-text: #ecc;
@@ -97,6 +100,25 @@
 
   * {
     @apply font-pixel;
+  }
+
+  /* Keyboard focus: a hard pixel ring, shown only for keyboard navigation. */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Honour the OS "reduce motion" setting for CSS animation and transitions;
+     canvas effects check prefersReducedMotion() in src/reducedMotion.ts. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
